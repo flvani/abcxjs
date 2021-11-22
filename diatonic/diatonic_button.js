@@ -54,6 +54,9 @@ DIATONIC.map.Button.prototype.draw = function( id, printer, limits, options ) {
     options.openColor = (options.kls && options.kls === 'blegenda'? DIATONIC.map.color.open : 'none' );
     options.closeColor = (options.kls && options.kls === 'blegenda'? DIATONIC.map.color.close : 'none' );
     
+    if(this.closeNote  && this.closeNote.isBass)
+        options.pautaNumerica = false;
+
     this.SVG.gid = printer.printButton( id, currX, currY, options );
 
 };
@@ -89,6 +92,32 @@ DIATONIC.map.Button.prototype.setClose = function(delay) {
     this.SVG.closeArc.style.setProperty( 'fill', DIATONIC.map.color.close );
 };
 
+DIATONIC.map.Button.prototype.setSVGpautaNumerica = function( formato ) {
+    var b = this.SVG;
+    var n = 0;
+
+    this.SVG.button = document.getElementById(b.gid);
+    this.SVG.openArc = document.getElementById(b.gid+'_ao');
+    this.SVG.closeArc = document.getElementById(b.gid+'_ac');
+    this.SVG.numericText = document.getElementById(b.gid+'_tn');
+
+    if( this.closeNote.isBass ) {
+        // não tratado ainda
+    } else {
+       if( formato.overrides[this.tabButton] ){
+          n = formato.overrides[this.tabButton];
+       } else{
+         var t = parseInt(this.tabButton);
+         var i=(this.tabButton.match(/'/g)||[]).length
+         n =  t+formato.rule[i];
+       }
+       this.SVG.numericText.textContent =  n;
+    }
+
+
+
+}
+
 DIATONIC.map.Button.prototype.setSVG = function(showLabel, pull, push, translator ) {
     var b = this.SVG;
     this.SVG.button = document.getElementById(b.gid);
@@ -101,7 +130,7 @@ DIATONIC.map.Button.prototype.setSVG = function(showLabel, pull, push, translato
         this.SVG.openText.setAttribute( 'data-translate', pull );
         this.SVG.closeText.setAttribute( 'data-translate', push );
         this.setText(showLabel, translator.getResource(pull), translator.getResource(push) ); 
-} else {
+    } else {
         this.setText(showLabel, pull, push ); 
     }
     

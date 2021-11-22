@@ -142,7 +142,7 @@ ABCXJS.Editor = function (params) {
     this.keyboardWindow = new DRAGGABLE.ui.Window( 
           this.studio.dataDiv
         , [ 'move|Mover', 'rotate|Rotacionar', 'zoom|Zoom','globe|Mudar Notação']
-        , {title: 'Keyb', draggable: false, translate: false, statusbar: false, top: "100px", left: "300px" } 
+        , {title: 'Keyb', draggable: true, translate: false, statusbar: false, top: "100px", left: "1100px" } 
         , {listener: this, method: 'keyboardCallback'}
     );
     
@@ -219,7 +219,9 @@ ABCXJS.Editor = function (params) {
             }
 
             //this.accordion.printKeyboard(this.keyboardWindow.dataDiv , {fillColor:'yellow', openColor:'navy', closeColor:'purple', backgroundColor:'red' } );
-            this.accordion.printKeyboard(this.keyboardWindow.dataDiv);
+            this.accordion.printKeyboard(this.keyboardWindow.dataDiv );
+            this.switchMap();
+
 
         } else {
             throw new Error('Tablatura para ' + params.generate_tablature + ' não suportada!');

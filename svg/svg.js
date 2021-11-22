@@ -348,15 +348,22 @@ SVG.Printer.prototype.printButton = function (id, x, y, options) {
     var gid = 'p'+this.printerId+id;
     var estilo = 'stroke:'+options.borderColor+'; stroke-width:'+options.borderWidth+'px; fill: none;';
 
+    var linha = '<path style="'+estilo+'" d="m 2 34 l 52 -12" ></path>\n';
+    
+    if(options.pautaNumerica) {
+        linha = ''
+    }
+
     var pathString = ABCXJS.write.sprintf( '<g id="%s" transform="translate(%.1f %.1f) scale(%.5f)">\n\
         <circle cx="28" cy="28" r="26" style="stroke:none; fill: %s;" ></circle>\n\
         <path id="%s_ac" style="stroke: none; fill: %s;" d="M 2 34 a26 26 0 0 1 52 -12"></path>\n\
         <path id="%s_ao" style="stroke: none; fill: %s;" d="M 54 22 a26 26 0 0 1 -52 12"></path>\n\
         <circle style="'+estilo+'" cx="28" cy="28" r="26"></circle>\n\
-        <path style="'+estilo+'" d="m 2 34 l 52 -12" ></path>\n\
-        <text id="%s_tc" class="%s" style="stroke:none; fill: black;" x="27" y="22" >...</text>\n\
-        <text id="%s_to" class="%s" style="stroke:none; fill: black;" x="27" y="44" >...</text>\n</g>\n',
-        gid, x, y, scale, options.fillColor, gid, options.closeColor, gid, options.openColor, gid, options.kls, gid, options.kls );
+        '+linha+'\
+        <text id="%s_tn" class="%s" style="stroke:none; fill: black;" x="28" y="36" ></text>\n\
+        <text id="%s_tc" class="%s" style="stroke:none; fill: black;" x="27" y="22" ></text>\n\
+        <text id="%s_to" class="%s" style="stroke:none; fill: black;" x="27" y="44" ></text>\n</g>\n',
+        gid, x, y, scale, options.fillColor, gid, options.closeColor, gid, options.openColor, gid, options.klsN, gid, options.kls, gid, options.kls );
         
     this.svg_pages[this.currentPage] += pathString;
     return gid;
