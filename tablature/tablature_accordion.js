@@ -18,7 +18,7 @@ ABCXJS.tablature.Accordion = function( params, pautaNumerica, pautaNumericaMini 
     this.translator    = params.translator || null;
     this.transposer    = new window.ABCXJS.parse.Transposer();
     this.pautaNumerica = pautaNumerica || 0;
-    this.pautaNumericaMini = pautaNumericaMini;
+    this.pautaNumericaMini = pautaNumericaMini || (pautaNumericaMini===undefined);
     
     if( this.accordions.length === 0 ) {
         throw new Error( 'No accordionMap found!');
