@@ -58,7 +58,6 @@ ABCXJS.write.Layout = function(printer, bagpipes ) {
   this.tuneCurrVoice = 0; // current voice number on current staff
   this.tripletmultiplier = 1;
   this.printer = printer;	// TODO-PER: this is a hack to get access, but it tightens the coupling.
-  this.accordion = printer.accordion;
   this.glyphs = printer.glyphs;
 };
 

@@ -10,13 +10,15 @@ if (!window.ABCXJS)
 if (!window.ABCXJS.tablature)
 	window.ABCXJS.tablature = {};
 
-ABCXJS.tablature.Accordion = function( params ) {
+ABCXJS.tablature.Accordion = function( params, pautaNumerica, pautaNumericaMini ) {
     
-    this.loaded       = undefined;
-    this.tabLines     = [];
-    this.accordions   = params.accordionMaps || [] ;
-    this.translator   = params.translator || null;
-    this.transposer   = new window.ABCXJS.parse.Transposer();
+    this.loaded        = undefined;
+    this.tabLines      = [];
+    this.accordions    = params.accordionMaps || [] ;
+    this.translator    = params.translator || null;
+    this.transposer    = new window.ABCXJS.parse.Transposer();
+    this.pautaNumerica = pautaNumerica || 0;
+    this.pautaNumericaMini = pautaNumericaMini;
     
     if( this.accordions.length === 0 ) {
         throw new Error( 'No accordionMap found!');
@@ -25,8 +27,6 @@ ABCXJS.tablature.Accordion = function( params ) {
     this.render_opts = {};
     this.setRenderOptions( params.render_keyboard_opts, true );
 
-//    this.render_opts =  params.render_keyboard_opts;
-    
     if( params.id )
         this.loadById( params.id );
     else
@@ -67,6 +67,8 @@ ABCXJS.tablature.Accordion.prototype.loadById = function (id) {
 ABCXJS.tablature.Accordion.prototype.load = function (sel) {
     this.loaded = this.accordions[sel];
     this.loadedKeyboard = this.loaded.keyboard;
+    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,this.pautaNumericaMini)
+
     return this.loaded;
 };
 
@@ -126,9 +128,18 @@ ABCXJS.tablature.Accordion.prototype.printKeyboard = function(div_id, options) {
     }
 };
 
+ABCXJS.tablature.Accordion.prototype.getFormatoTab = function () {
+    return this.pautaNumerica;
+};
+
+ABCXJS.tablature.Accordion.prototype.setFormatoTab = function (val,mini) {
+    this.pautaNumerica = val;
+    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,mini)
+};
+
 ABCXJS.tablature.Accordion.prototype.getId = function () {
     return this.loaded.getId();
-};
+}
 ABCXJS.tablature.Accordion.prototype.getFullName = function () {
     return this.loaded.getFullName();
 };
@@ -144,7 +155,6 @@ ABCXJS.tablature.Accordion.prototype.getTxtNumButtons = function () {
 ABCXJS.tablature.Accordion.prototype.getTxtTuning = function () {
     return this.loaded.getTxtTuning();
 };
-
 
 ABCXJS.tablature.Accordion.prototype.getNoteName = function( item, keyAcc, barAcc, bass ) {
     

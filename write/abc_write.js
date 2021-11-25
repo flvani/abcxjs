@@ -38,7 +38,7 @@ ABCXJS.write.color.useTransparency = true;
 
 //--------------------------------------------------------------------PRINTER
 
-ABCXJS.write.Printer = function (paper, params) {
+ABCXJS.write.Printer = function (paper, params, loadedKeyboard) {
 
     params = params || {};
     this.y = 0;
@@ -54,8 +54,8 @@ ABCXJS.write.Printer = function (paper, params) {
     this.paddingleft = params.paddingleft || 15;
     this.paddingright = params.paddingright || 30;
     this.editable = params.editable || false;
+    this.loadedKeyboard = loadedKeyboard || null; // preciso disso para gerar a pauta númerica (se houver)
     this.staffgroups = [];
-
 };
 
 ABCXJS.write.Printer.prototype.printABC = function (abctunes, options) {
@@ -420,8 +420,28 @@ ABCXJS.write.Printer.prototype.printText = function (x, offset, text, kls, ancho
 };
 
 ABCXJS.write.Printer.prototype.printTabText = function (x, offset, text, klass) {
+
     klass = klass || 'abc_tabtext';
-    this.paper.tabText(x, this.calcY(offset)+5, text, klass, 'middle');
+
+    //if( opcao tablatura !== alemã )
+    //btn.tabButton = (i + 1) + Array(j + 1).join("'");
+
+    var i = parseInt(text);
+    var j=(text.match(/'/g)||[]).length
+    var n=text;
+
+    if(this.loadedKeyboard.pautaNumerica && !isNaN(i) && this.loadedKeyboard.keyMap[j][i-1] && !this.loadedKeyboard.keyMap[j][i-1].closeNote.isBass){
+        var b = this.loadedKeyboard.keyMap[j][i-1]
+        var formato = this.loadedKeyboard.pautaNumericaFormato;
+        if( formato.overrides[b.tabButton] ){
+            n = formato.overrides[b.tabButton];
+         } else{
+            n =  i+formato.rule[j];
+         }
+    }
+
+
+    this.paper.tabText(x, this.calcY(offset)+5, n, klass, 'middle');
 };
 
 ABCXJS.write.Printer.prototype.printTabText2 = function (x, offset, text) {

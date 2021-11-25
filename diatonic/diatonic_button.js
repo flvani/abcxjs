@@ -54,8 +54,10 @@ DIATONIC.map.Button.prototype.draw = function( id, printer, limits, options ) {
     options.openColor = (options.kls && options.kls === 'blegenda'? DIATONIC.map.color.open : 'none' );
     options.closeColor = (options.kls && options.kls === 'blegenda'? DIATONIC.map.color.close : 'none' );
     
-    if(this.closeNote  && this.closeNote.isBass)
+    if(this.closeNote && this.closeNote.isBass)
         options.pautaNumerica = false;
+
+    this.isNumerica = options.pautaNumerica; 
 
     this.SVG.gid = printer.printButton( id, currX, currY, options );
 
@@ -92,49 +94,47 @@ DIATONIC.map.Button.prototype.setClose = function(delay) {
     this.SVG.closeArc.style.setProperty( 'fill', DIATONIC.map.color.close );
 };
 
-DIATONIC.map.Button.prototype.setSVGpautaNumerica = function( formato ) {
+DIATONIC.map.Button.prototype.setSVG = function( showLabel, opts ) {
     var b = this.SVG;
     var n = 0;
+    var pull = opts.pull || null;
+    var push = opts.push || null;
+    var translator = opts.translator || null ;
+    var formato = opts.formatoNumerico || null;
+    var isMini = opts.mini;
 
     this.SVG.button = document.getElementById(b.gid);
-    this.SVG.openArc = document.getElementById(b.gid+'_ao');
-    this.SVG.closeArc = document.getElementById(b.gid+'_ac');
-    this.SVG.numericText = document.getElementById(b.gid+'_tn');
-
-    if( this.closeNote.isBass ) {
-        // não tratado ainda
-    } else {
-       if( formato.overrides[this.tabButton] ){
-          n = formato.overrides[this.tabButton];
-       } else{
-         var t = parseInt(this.tabButton);
-         var i=(this.tabButton.match(/'/g)||[]).length
-         n =  t+formato.rule[i];
-       }
-       this.SVG.numericText.textContent =  n;
-    }
-
-
-
-}
-
-DIATONIC.map.Button.prototype.setSVG = function(showLabel, pull, push, translator ) {
-    var b = this.SVG;
-    this.SVG.button = document.getElementById(b.gid);
-    this.SVG.openArc = document.getElementById(b.gid+'_ao');
+    this.SVG.openArc = document.getElementById(b.gid + '_ao');
+    this.SVG.closeArc = document.getElementById(b.gid + '_ac');
     this.SVG.openText = document.getElementById(b.gid+'_to');
-    this.SVG.closeArc = document.getElementById(b.gid+'_ac');
     this.SVG.closeText = document.getElementById(b.gid+'_tc');
-    
-    if( translator ) {
-        this.SVG.openText.setAttribute( 'data-translate', pull );
-        this.SVG.closeText.setAttribute( 'data-translate', push );
-        this.setText(showLabel, translator.getResource(pull), translator.getResource(push) ); 
-    } else {
-        this.setText(showLabel, pull, push ); 
+    this.SVG.numericText = document.getElementById(b.gid + '_tn');
+    this.SVG.numericTextMini = document.getElementById(b.gid + '_tm');
+
+    if( this.isNumerica ){
+        if (formato.overrides[this.tabButton]) {
+            n = formato.overrides[this.tabButton];
+        } else {
+            var i = parseInt(this.tabButton);
+            var j = (this.tabButton.match(/'/g) || []).length
+            n = i + formato.rule[j];
+        }
+        if (isMini)
+            this.SVG.numericTextMini.textContent = n;
+        else
+            this.SVG.numericText.textContent = n;
     }
-    
-};
+
+    if ( !this.isNumerica || isMini ) {
+        if( translator ) {
+            this.SVG.openText.setAttribute( 'data-translate', pull );
+            this.SVG.closeText.setAttribute( 'data-translate', push );
+            this.setText(showLabel, translator.getResource(pull), translator.getResource(push) ); 
+        } else {
+            this.setText(showLabel, pull, push ); 
+        }
+    }
+}
 
 DIATONIC.map.Button.prototype.setText = function( showLabel, open, close ) {
     if(this.SVG.openText) {

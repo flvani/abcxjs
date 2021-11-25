@@ -347,11 +347,17 @@ SVG.Printer.prototype.printButton = function (id, x, y, options) {
     var scale = options.radius/26; // 26 é o raio inicial do botão
     var gid = 'p'+this.printerId+id;
     var estilo = 'stroke:'+options.borderColor+'; stroke-width:'+options.borderWidth+'px; fill: none;';
+    var estiloMini = 'stroke:'+options.borderColor+'; stroke-width:'+options.borderWidth+'px; fill: black;';
 
     var linha = '<path style="'+estilo+'" d="m 2 34 l 52 -12" ></path>\n';
+    var circPautaNum  = '';
     
-    if(options.pautaNumerica) {
-        linha = ''
+    if(options.pautaNumerica ) {
+        if( options.pautaNumericaMini) {
+            circPautaNum  = '<circle style="'+estiloMini+'" cx="46" cy="46" r="10"></circle>\n'
+        } else {
+            linha = ''
+        }
     }
 
     var pathString = ABCXJS.write.sprintf( '<g id="%s" transform="translate(%.1f %.1f) scale(%.5f)">\n\
@@ -360,10 +366,13 @@ SVG.Printer.prototype.printButton = function (id, x, y, options) {
         <path id="%s_ao" style="stroke: none; fill: %s;" d="M 54 22 a26 26 0 0 1 -52 12"></path>\n\
         <circle style="'+estilo+'" cx="28" cy="28" r="26"></circle>\n\
         '+linha+'\
-        <text id="%s_tn" class="%s" style="stroke:none; fill: black;" x="28" y="36" ></text>\n\
         <text id="%s_tc" class="%s" style="stroke:none; fill: black;" x="27" y="22" ></text>\n\
-        <text id="%s_to" class="%s" style="stroke:none; fill: black;" x="27" y="44" ></text>\n</g>\n',
-        gid, x, y, scale, options.fillColor, gid, options.closeColor, gid, options.openColor, gid, options.klsN, gid, options.kls, gid, options.kls );
+        <text id="%s_to" class="%s" style="stroke:none; fill: black;" x="27" y="44" ></text>\n\
+        <text id="%s_tn" class="%s" style="stroke:none; fill: black;" x="28" y="36" ></text>\n\
+        '+circPautaNum+'\
+        <text id="%s_tm" class="%s" style="stroke:none; fill: white;" x="46" y="50" ></text>\n\
+        </g>\n',
+        gid, x, y, scale, options.fillColor, gid, options.closeColor, gid, options.openColor, gid, options.kls, gid, options.kls, gid, options.klsN, gid, options.klsNMini );
         
     this.svg_pages[this.currentPage] += pathString;
     return gid;

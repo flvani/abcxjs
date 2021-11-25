@@ -190,13 +190,16 @@ ABCXJS.Editor = function (params) {
     this.studio.dataDiv.appendChild(this.canvasContainer);
     
     this.resize();
+
+    this.globalPautaNumerica = 1
+    this.globalPautaNumericaMini = true;
     
     if (params.refreshController_id)
-        this.refreshController = document.getElementById(params.refreshController_id);
+        this.refreshController = document.getElementById(params.refreshController_id );
 
     if (params.generate_tablature) {
         if (params.generate_tablature === 'accordion') {
-            this.accordion = new ABCXJS.tablature.Accordion(params.accordion_options);
+            this.accordion = new ABCXJS.tablature.Accordion(params.accordion_options, this.globalPautaNumerica, this.globalPautaNumericaMini );
 
             if (params.accordionSelector_id) {
                 this.accordionSelector = new ABCXJS.edit.AccordionSelector( 
@@ -414,7 +417,7 @@ ABCXJS.Editor.prototype.renderTune = function (abc, params, div) {
     abcParser.parse(tunebook.tunes[0].abc, params); //TODO handle multiple tunes
     var tune = abcParser.getTune();
     var paper = Raphael(div, 800, 400);
-    var printer = new ABCXJS.write.Printer(paper, {});// TODO: handle printer params
+    var printer = new ABCXJS.write.Printer(paper, {}, this.accordion.loadedKeyboard);// TODO: handle printer params
     //printer.printABC(tune, {color:'green'} );
     printer.printABC(tune);
 
@@ -613,7 +616,7 @@ ABCXJS.Editor.prototype.onModelChanged = function(loader) {
     this.timerId = null;
     this.canvasDiv.innerHTML = "";
     var paper = new SVG.Printer( this.canvasDiv );
-    this.printer = new ABCXJS.write.Printer(paper, this.printerparams );
+    this.printer = new ABCXJS.write.Printer(paper, this.printerparams, this.accordion.loadedKeyboard );
     this.printTimeStart = new Date();
     //this.printer.printABC(this.tunes, {color:'red', baseColor:'green'} );
     this.printer.printABC(this.tunes);
@@ -815,6 +818,9 @@ ABCXJS.Editor.prototype.showSettings = function() {
                 <th colspan="2">Acordeão:</th><td><div id="settingsAccordionsMenu" class="topMenu"></div></td>\
               </tr>\
               <tr>\
+                <th colspan="2">Tablatura:</th><td><div id="settingsTabMenu" class="topMenu"></div></td>\
+              </tr>\
+              <tr>\
                 <th colspan="2"><br>Cores:</th><td></td>\
               </tr>\
               <tr>\
@@ -857,6 +863,17 @@ ABCXJS.Editor.prototype.showSettings = function() {
                 'sel2', 'settingsAccordionsMenu', {listener: this, method: 'settingsCallback'} );
         
         selector.populate(true, 'GAITA_HOHNER_CLUB_IIIM_BR');
+
+        var menu = new DRAGGABLE.ui.DropdownMenu(
+            'settingsTabMenu'
+         ,  { listener:this, method:'settingsCallback' }
+         ,  [{title: 'Modelo Alemão', ddmId: 'menuFormato',
+                 itens: [
+                     '&#160;Modelo Alemão|0',
+                     '&#160;Numérica 1 (se disponível)|1',
+                     '&#160;Numérica 2 (se disponível)|2' 
+                 ]}]
+         );
         
         var menu = new DRAGGABLE.ui.DropdownMenu(
                'settingsLanguageMenu'
