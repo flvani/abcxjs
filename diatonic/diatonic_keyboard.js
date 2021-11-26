@@ -310,7 +310,7 @@ DIATONIC.map.Keyboard.prototype.parseNote = function(txtNota, isBass) {
 DIATONIC.map.Keyboard.prototype.redraw = function(render_opts) {
     for (var j = 0; j < this.keyMap.length; j++) {
         for (var i = 0; i < this.keyMap[j].length; i++) {
-            if(this.pautaNumerica === 0 || this.pautaNumericaMini )
+            if( this.pautaNumericaMini || !this.keyMap[j][i].isNumerica  )
                 this.keyMap[j][i].setText( render_opts.label );
         }
     }
