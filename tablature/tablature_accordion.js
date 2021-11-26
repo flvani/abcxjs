@@ -134,6 +134,7 @@ ABCXJS.tablature.Accordion.prototype.getFormatoTab = function () {
 
 ABCXJS.tablature.Accordion.prototype.setFormatoTab = function (val,mini) {
     this.pautaNumerica = val;
+    this.pautaNumericaMini = mini
     this.loadedKeyboard.setFormatoTab(this.pautaNumerica,mini)
 };
 
