@@ -81,9 +81,9 @@ SVG.Printer = function ( d ) {
         var h = size? size.h*this.scale + 'px' : '0';
         var d = size? '' : 'display: none; ';
         
-//        // not in use
-//        id = id? 'id="'+id+'"' : '' ;
-//        kls = kls? 'class="'+kls+'"' : '' ;
+        //        // not in use
+        //        id = id? 'id="'+id+'"' : '' ;
+        //        kls = kls? 'class="'+kls+'"' : '' ;
         
         return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="'+d+'width:'+w+'; height: '+h+';" >\n';
     };

@@ -310,7 +310,8 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
         }
     }
     
-    this.paper.topDiv.style.width = "" +  (this.maxwidth + this.paddingright) + "px";
+    //this.paper.topDiv.style.width = "" +  (this.maxwidth + this.paddingright) + "px";
+    this.paper.topDiv.style.width = "auto";
 
 };
 
