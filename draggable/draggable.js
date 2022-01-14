@@ -188,7 +188,7 @@ DRAGGABLE.ui.Window = function( parent, aButtons, options, callback, aToolBarBut
 
         this.resizeCorner.addEventListener( 'mouseover', function() { self.resizeCorner.style.cursor='nwse-resize'; }, false);
         this.resizeCorner.addEventListener( 'mousedown', this.mouseResize, false);
-        this.resizeCorner.addEventListener('touchstart', this.mouseResize, false);
+        this.resizeCorner.addEventListener('touchstart', this.mouseResize, {passive:true});
     }
     
     this.divMove = function (e) {
@@ -427,7 +427,7 @@ DRAGGABLE.ui.Window.prototype.addTitle = function( id, title  ) {
         self.menuDiv.addEventListener( 'mouseover', function() { self.menuDiv.style.cursor='move'; }, false);
     }
     self.menuDiv.addEventListener( 'mousedown', self.mouseMove, false);
-    self.menuDiv.addEventListener('touchstart', self.mouseMove, false);
+    self.menuDiv.addEventListener('touchstart', self.mouseMove, {passive:true});
     
 };
 
@@ -486,7 +486,7 @@ DRAGGABLE.ui.Window.prototype.addAction = function( action, div, self ) {
     };
     
     div.addEventListener( 'click', f, false);
-    div.addEventListener( 'touchstart', f, false);
+    div.addEventListener( 'touchstart', f, {passive:true});
     div.addEventListener( 'mousedown', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
 };
 

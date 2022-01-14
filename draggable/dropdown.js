@@ -84,7 +84,7 @@ DRAGGABLE.ui.DropdownMenu = function (topDiv, options, menu) {
             e.stopPropagation(); 
             e.preventDefault(); 
             self.eventsCentral(this.getAttribute("data-ddm")); 
-        }, false);
+        }, {passive:true});
  
         e2.addEventListener("keydown",function(e) {
             e.stopPropagation(); 
@@ -548,7 +548,7 @@ DRAGGABLE.ui.DropdownMenu.prototype.addAction = function( ddm, action, div, self
        div.addEventListener( 'touchmove', swiping, false );
        e.preventDefault(); 
        e.stopPropagation(); 
-    }, false);
+    }, {passive:true});
     
     div.addEventListener( 'touchend', function (e) {
         
