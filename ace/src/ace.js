@@ -1422,7 +1422,9 @@ exports.stopPropagation = function(e) {
 
 exports.preventDefault = function(e) {
     if (e.preventDefault)
-        e.preventDefault();
+        try{
+            e.preventDefault();
+        } catch(e) {}
     else
         e.returnValue = false;
 };
