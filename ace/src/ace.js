@@ -1424,7 +1424,7 @@ exports.preventDefault = function(e) {
     if (e.preventDefault)
         try{
             e.preventDefault();
-        } catch(e) {}
+        } catch(x) {}
     else
         e.returnValue = false;
 };
