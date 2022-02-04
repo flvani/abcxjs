@@ -411,7 +411,7 @@ ABCXJS.midi.Parse.prototype.selectButtons = function(elem) {
                     elem.pitches[i].lastButton = (button? button.tabButton: 'x');
                     tie = true;
                 } else {
-                    button = this.getBassButton(elem.bellows, elem.pitches[i].c);
+                    button = this.getBassButton(elem.bellows, elem.pitches[i].c, elem.pitches[i].variant);
                     this.lastTabElem[i] = button;
                 }
             } else {
@@ -824,7 +824,7 @@ ABCXJS.midi.Parse.prototype.setSelection = function(tabElem) {
         //de outra forma o label é número do botão (1, 1', 1'', etc)
         if(pitch.bass && pitch.c !== 'scripts.rarrow')
             // quando label é uma letra
-            button = this.getBassButton(tabElem.bellows, tabButton);
+            button = this.getBassButton(tabElem.bellows, tabButton, pitch.variant);
         else
             // quando label é número do botão
             button = this.getButton(tabButton);
@@ -839,7 +839,7 @@ ABCXJS.midi.Parse.prototype.setSelection = function(tabElem) {
     }
 };
 
-ABCXJS.midi.Parse.prototype.getBassButton = function( bellows, b ) {
+ABCXJS.midi.Parse.prototype.getBassButton = function( bellows, b, variant ) {
     if( b === 'x' ||  !this.midiTune.keyboard ) return null;
     var kb = this.midiTune.keyboard;
     
@@ -847,14 +847,15 @@ ABCXJS.midi.Parse.prototype.getBassButton = function( bellows, b ) {
     // no mapeamento da gaita, escrevemos a1:m, por exemplo.
     // então trocar "m" por ":m"
     var nota = kb.parseNote(b.replace( "m", ":m" ), true );
+    nota.variant = variant;
     
     for( var j = kb.keyMap.length; j > kb.keyMap.length - 2; j-- ) {
       for( var i = 0; i < kb.keyMap[j-1].length; i++ ) {
           var tecla = kb.keyMap[j-1][i];
           if(bellows === '+') {
-            if(tecla.closeNote.key === nota.key  && nota.isMinor === tecla.closeNote.isMinor ) return tecla;
+            if(tecla.closeNote.key === nota.key  && nota.isMinor === tecla.closeNote.isMinor && nota.variant === tecla.closeNote.variant ) return tecla;
           } else {  
-            if(tecla.openNote.key === nota.key && nota.isMinor === tecla.openNote.isMinor ) return tecla;
+            if(tecla.openNote.key === nota.key && nota.isMinor === tecla.openNote.isMinor && nota.variant === tecla.openNote.variant ) return tecla;
           }
       }   
     }
