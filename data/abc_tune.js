@@ -121,17 +121,21 @@ window.ABCXJS.data.Tune = function() {
         
         
         if (!this.formatting.landscape)         this.formatting.landscape = ls;
-        if (!this.formatting.papersize)         this.formatting.papersize = ps.toLowerCase();
-        if (!this.formatting.defaultMargin)     this.formatting.defaultMargin = ''+defaultMargin+'cm';
-        if (!this.formatting.pagewidth)         this.formatting.pagewidth = pw;
-        if (!this.formatting.pageheight)        this.formatting.pageheight = ph;
-        if (!this.formatting.pagenumbering)     this.formatting.pagenumbering = pn;
-        if (!this.formatting.staffsep)          this.formatting.staffsep = ss;
-        if (!this.formatting.barsperstaff)      this.formatting.barsperstaff = vars.barsperstaff;
-        if (!this.formatting.staffwidth)        this.formatting.staffwidth = this.formatting.usablewidth;
-        if (!this.formatting.tabInferenceOpts ) this.formatting.tabInferenceOpts = +1.0;
-        if (!this.formatting.restsInTab )       this.formatting.restsInTab = false;
-        if (!this.formatting.hideFingering )    this.formatting.hideFingering = false;
+        if (!this.formatting.papersize)             this.formatting.papersize = ps.toLowerCase();
+        if (!this.formatting.defaultMargin)         this.formatting.defaultMargin = ''+defaultMargin+'cm';
+        if (!this.formatting.pagewidth)             this.formatting.pagewidth = pw;
+        if (!this.formatting.pageheight)            this.formatting.pageheight = ph;
+        if (!this.formatting.pagenumbering)         this.formatting.pagenumbering = pn;
+        if (!this.formatting.staffsep)              this.formatting.staffsep = ss;
+        if (!this.formatting.barsperstaff)          this.formatting.barsperstaff = vars.barsperstaff;
+        if (!this.formatting.staffwidth)            this.formatting.staffwidth = this.formatting.usablewidth;
+        if (!this.formatting.tabInferenceOpts )     this.formatting.tabInferenceOpts = +1.0 ;
+        if (!this.formatting.restsInTab )           this.formatting.restsInTab = false;
+
+        //aqui temos diretivas que também serão opções de tela. 
+        //por definição, a diretiva terá precedência sobre as opções de tela        
+        if (!this.formatting.hideFingering )        this.formatting.hideFingering = vars.hideFingering || false;
+        if (!this.formatting.tabprintrowsnumbered ) this.formatting.tabprintrowsnumbered = vars.ilheirasNumeradas || false;
         
     };
     

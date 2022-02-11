@@ -193,7 +193,12 @@ ABCXJS.Editor = function (params) {
 
     this.globalPautaNumerica = 1
     this.globalPautaNumericaMini = true;
-    
+    this.globalIlheirasNumeradas = true;
+    this.globalHideFingering     = false;
+
+    this.parserparams.hideFingering = this.globalHideFingering ;
+    this.parserparams.ilheirasNumeradas = this.globalIlheirasNumeradas ;
+        
     if (params.refreshController_id)
         this.refreshController = document.getElementById(params.refreshController_id );
 

@@ -142,6 +142,35 @@ ABCXJS.write.Layout.prototype.layoutABCLine = function( abctune, line, width ) {
             this.staffgroup.addVoice(this.voice);
         }
     }
+
+    // a informação de dedilhado (fingering) esta disponível na primeira voz (treble - pode haver mais de uma)
+    // a cada nota, deve corresponder uma digital.
+    // a terceira voz, em geral é a da tablatura 
+    // busca-se aqui, mesclar a informação de dedilhado que foi informada na primeira voz
+    if( this.staffgroup.voices[0].stave.clef.type === 'treble' &&  this.staffgroup.voices[0].fingers.length > 0 ) {
+        var fingers = this.staffgroup.voices[0].fingers;
+        var fingerIdx = 0;
+        if(this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
+            var voz = this.staffgroup.voices[2].children;
+            for (i=0; i<voz.length; i++) {
+                if(voz[i].abcelem.el_type === 'note'){
+                    //verificar se algum dos pitches, que não seja baixo, é do tipo 'tabText'[2|3]
+                    var pitches = voz[i].abcelem.pitches
+                    for (p=0; p<pitches.length; p++) {
+                        if(pitches[p].type.substr(0,7) === 'tabText' && pitches[p].c !== 'scripts.rarrow' && pitches[p].bass === undefined && fingerIdx < fingers.length ){
+                            voz[i].children[voz[i].children.length] = fingers[fingerIdx++];
+                            voz[i].children[voz[i].children.length-1].dx =-5;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            // existe dedilhado mas não consegui tratar 
+            console.log('abc_layout: existe dedilhado mas não consegui tratar')
+        }
+    }
+
     this.layoutStaffGroup();
     
     return this.staffgroup;

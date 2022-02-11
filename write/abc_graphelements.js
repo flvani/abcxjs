@@ -279,6 +279,7 @@ ABCXJS.write.StaffGroupElement.prototype.draw = function(printer, groupNumber) {
             printer.y = this.voices[i].stave.top - 18;
             printer.printSubtitleLine(this.voices[i].stave.subtitle);
         }
+        //if(this.voices[i].stave.clef.type === 'accordionTab') // flavio - implementar impressão seletiva da pauta
         this.voices[i].draw(printer);
     }
 
@@ -303,6 +304,7 @@ ABCXJS.write.StaffGroupElement.prototype.draw = function(printer, groupNumber) {
 
 ABCXJS.write.VoiceElement = function(voicenumber, staffnumber, abcstaff) {
     this.children = [];
+    this.fingers = [];
     this.beams = [];
     this.otherchildren = []; // ties, slurs, triplets
     this.w = 0;
@@ -326,6 +328,12 @@ ABCXJS.write.VoiceElement = function(voicenumber, staffnumber, abcstaff) {
 
 ABCXJS.write.VoiceElement.prototype.addChild = function(child) {
     this.children[this.children.length] = child;
+    for (i=0; i<child.children.length; i++) {
+        var relativeChild = child.children[i];
+        if(relativeChild.type === 'fingering'){
+            this.fingers[this.fingers.length] = relativeChild;
+        }
+    }
 };
 
 ABCXJS.write.VoiceElement.prototype.addOther = function(child) {
@@ -646,7 +654,9 @@ ABCXJS.write.RelativeElement.prototype.draw = function(printer, x, staveInfo ) {
             this.graphelem = printer.printDebugMsg(this.x, staveInfo.highest+2, this.c);
             break;
         case "fingering":
-            this.graphelem = printer.printFingering(this.x, staveInfo, this.c);
+            //limita a impressão do dedilhado somente abaixo da tablatura
+            if( staveInfo.clef.type === 'accordionTab') // implementar opção de imprimir o dedilhado entre as linhas da pauta ou abaixo da tablatura
+                this.graphelem = printer.printFingering(this.x, staveInfo, this.c);
             break;
         case "lyrics":
             this.graphelem = printer.printLyrics(this.x, staveInfo, this.c);

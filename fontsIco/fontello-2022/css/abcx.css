@@ -1,47 +1,57 @@
 @font-face {
   font-family: 'abcx';
-  src: url('./abcx.ttf?33536001') format('truetype'),
-       url('./abcx.svg?33536001#abcx') format('svg');
+  src: url('../font/abcx.eot?33536001');
+  src: url('../font/abcx.eot?33536001#iefix') format('embedded-opentype'),
+       url('../font/abcx.woff2?33536001') format('woff2'),
+       url('../font/abcx.woff?33536001') format('woff'),
+       url('../font/abcx.ttf?33536001') format('truetype'),
+       url('../font/abcx.svg?33536001#abcx') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
-
-
 /* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
 /* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
 /*
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'abcx';
-    src: url('../font/abcx.svg?81969744#abcx') format('svg');
+    src: url('../font/abcx.svg?33536001#abcx') format('svg');
   }
 }
 */
- 
- [class^="ico-"]:before, [class*=" ico-"]:before {
+[class^="ico-"]:before, [class*=" ico-"]:before {
   font-family: "abcx";
   font-style: normal;
   font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
+  speak: never;
+
   display: inline-block;
   text-decoration: inherit;
-  text-align: center;
   width: 1em;
-  height: 1em;
-  padding: 0;
-  
-  /* 3D effect */
-   text-shadow: 2px 1px 2px rgba(50, 50, 50, 0.8); 
-   
+  margin-right: .2em;
+  text-align: center;
+  /* opacity: .8; */
+
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
+
   /* Font smoothing. That was taken from TWBS */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
- 
-  /*position relative faz diferença aqui*/
-  /* opacity: .8; */
-  
-  /* you can be more comfortable with increased icons size */
-  /* font-size: 120%; */
- 
+
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
 
 .ico-step-backward:before { content: '\e800'; } /* '' */
@@ -140,28 +150,4 @@
 .ico-rotate:before { content: '\e85d'; } /* '' */
 .ico-search:before { content: '\e85e'; } /* '' */
 .ico-search-2:before { content: '\e85f'; } /* '' */
-.ico-alien-fingering:before { content: '\e861'; } /* '' */
-
-.ico-large {
-  font-size: 180%;
-}
-
-.ico-black {
-    color: black;
-}
-
-.ico-lightgreen {
-    color: lightgreen;
-}
-
-.ico-lightgoldenrodyellow {
-    color: lightgoldenrodyellow;
-}
-
-.ico-lightblue {
-    color: lightblue;
-}
-
-.ico-diatonic-green {
-    color: #5ba4a4;
-}
+.ico-alien-fingering:before { content: '\e861'; } /* '' */

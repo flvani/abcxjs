@@ -441,8 +441,14 @@ ABCXJS.write.Printer.prototype.printTabText = function (x, offset, text, klass) 
          }
     }
 
+    //se for um numero da tablatura e o formato é para numerar as ilheiras faz as devidas mudanças
+    if( this.currentTune.formatting.tabprintrowsnumbered && !isNaN(i) ){
+        this.paper.tabText(x, this.calcY(offset)+7, i, klass, 'middle');
+        this.paper.tabText(x+6, this.calcY(offset)+2, j, 'abc_tabtext3', 'middle');
+    } else {
+        this.paper.tabText(x, this.calcY(offset)+5, n, klass, 'middle');
+    }
 
-    this.paper.tabText(x, this.calcY(offset)+5, n, klass, 'middle');
 };
 
 ABCXJS.write.Printer.prototype.printTabText2 = function (x, offset, text) {
@@ -476,7 +482,7 @@ ABCXJS.write.Printer.prototype.printLyrics = function(x, staveInfo, msg) {
 };
 
 ABCXJS.write.Printer.prototype.printFingering = function(x, staveInfo, msg) {
-    var y = this.calcY(staveInfo.lowest);
+    var y = this.calcY(staveInfo.lowest)-10;
     try {
         this.paper.printSymbol(x-3, y, 'cn.'+msg.trim());
     } catch(e){

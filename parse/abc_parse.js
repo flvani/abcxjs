@@ -611,7 +611,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
         var addWord = function(i) {
             var word = window.ABCXJS.parse.strip(words.substring(last_divider, i));
             
-            if( fingers && word.trim() !== "" && ".1.2.3.4.5.23.24.25.34.35.45.234.345.2345.*.".indexOf("."+word.trim()+".") < 0 ) {
+            if (fingers && word.trim() !== "" && ".1.2.3.4.5.23.24.25.34.35.45.234.235.245.345.2345.*.".indexOf("."+word.trim()+".") < 0 ) {
                 warn( "Alien fingering detected", words, i-word.trim().length );
             }
             
@@ -1976,6 +1976,13 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                     } 
                     
                 }
+            }
+
+            if(switches.ilheirasNumeradas !== undefined){
+                multilineVars.ilheirasNumeradas = switches.ilheirasNumeradas
+            }
+            if(switches.hideFingering !== undefined){
+                multilineVars.hideFingering = switches.hideFingering
             }
             
             tune.setFormat(multilineVars);
