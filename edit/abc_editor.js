@@ -572,7 +572,8 @@ ABCXJS.Editor.prototype.unhighlight = function(abcelem) {
 // call when abc text is changed and needs re-parsing
 ABCXJS.Editor.prototype.fireChanged = function (transpose, _opts) {
     
-    if( this.changing ) return;
+// flavio debug    if( this.changing ) return;
+this.parserparams.hideFingering = !this.parserparams.hideFingering;
     
     this.changing = true;
     var opts = _opts || {};

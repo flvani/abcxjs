@@ -143,10 +143,11 @@ ABCXJS.write.Layout.prototype.layoutABCLine = function( abctune, line, width ) {
         }
     }
 
+    // FINGERS - Parte II
     // a informação de dedilhado (fingering) esta disponível na primeira voz (treble - pode haver mais de uma)
     // a cada nota, deve corresponder uma digital.
     // a terceira voz, em geral é a da tablatura 
-    // busca-se aqui, mesclar a informação de dedilhado que foi informada na primeira voz
+    // busca-se aqui, mover a informação de dedilhado que foi informada na primeira voz para a voz da tablatura
     if( this.staffgroup.voices[0].stave.clef.type === 'treble' &&  this.staffgroup.voices[0].fingers.length > 0 ) {
         var fingers = this.staffgroup.voices[0].fingers;
         var fingerIdx = 0;
@@ -522,9 +523,8 @@ ABCXJS.write.Layout.prototype.printNote = function(elem, nostem, dontDraw) { //s
             lyricStr += "\n" + ly.syllable + ly.divider ;
             maxLen = Math.max( maxLen, (ly.syllable + ly.divider).length );
         });
-        if (elem.fingering === undefined || this.tune.formatting.hideFingering) 
-            lyricStr = lyricStr.substr(1); // remove the first linefeed
-        abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, 0, {type: "lyrics"}));
+        lyricStr = lyricStr.substring(1); // remove the first linefeed
+        abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, -5, {type: "lyrics"}));
     }
     
     if (elem.fingering !== undefined  && !this.tune.formatting.hideFingering) {
@@ -534,7 +534,7 @@ ABCXJS.write.Layout.prototype.printNote = function(elem, nostem, dontDraw) { //s
             lyricStr += "\n" + ly.syllable + ly.divider ;
             maxLen = Math.max( maxLen, (ly.syllable + ly.divider).length*1.3 );
         });
-        lyricStr = lyricStr.substr(1); // remove the first linefeed
+        lyricStr = lyricStr.substring(1); // remove the first linefeed
         abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, 0, {type: "fingering"}));
     }
 

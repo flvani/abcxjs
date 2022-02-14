@@ -328,10 +328,14 @@ ABCXJS.write.VoiceElement = function(voicenumber, staffnumber, abcstaff) {
 
 ABCXJS.write.VoiceElement.prototype.addChild = function(child) {
     this.children[this.children.length] = child;
+    // FINGERS - Parte I
+    // o parse do dedilhado foi feito nos moldes da letra (lyrics)
+    // porém agora, removo os elementos de dedilhados do padrão original e crio uma estrutura separada da voz
     for (i=0; i<child.children.length; i++) {
-        var relativeChild = child.children[i];
-        if(relativeChild.type === 'fingering'){
-            this.fingers[this.fingers.length] = relativeChild;
+        if(child.children[i].type === 'fingering'){
+            var relativeChild =  child.children[i] ;
+            this.fingers[this.fingers.length] = relativeChild ;
+            child.children.splice(i,1);
         }
     }
 };
@@ -654,9 +658,7 @@ ABCXJS.write.RelativeElement.prototype.draw = function(printer, x, staveInfo ) {
             this.graphelem = printer.printDebugMsg(this.x, staveInfo.highest+2, this.c);
             break;
         case "fingering":
-            //limita a impressão do dedilhado somente abaixo da tablatura
-            if( staveInfo.clef.type === 'accordionTab') // implementar opção de imprimir o dedilhado entre as linhas da pauta ou abaixo da tablatura
-                this.graphelem = printer.printFingering(this.x, staveInfo, this.c);
+            this.graphelem = printer.printFingering(this.x, staveInfo, this.c);
             break;
         case "lyrics":
             this.graphelem = printer.printLyrics(this.x, staveInfo, this.c);
