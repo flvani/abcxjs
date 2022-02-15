@@ -191,11 +191,13 @@ ABCXJS.Editor = function (params) {
     
     this.resize();
 
-    this.globalPautaNumerica = 1
+    this.globalPautaNumerica     = 1
     this.globalPautaNumericaMini = true;
-    this.globalIlheirasNumeradas = true;
+    this.globalHideLyrics        = false;
     this.globalHideFingering     = false;
+    this.globalIlheirasNumeradas = true;
 
+    this.parserparams.hideLyrics = this.globalhideLyrics ;
     this.parserparams.hideFingering = this.globalHideFingering ;
     this.parserparams.ilheirasNumeradas = this.globalIlheirasNumeradas ;
         
@@ -574,6 +576,7 @@ ABCXJS.Editor.prototype.fireChanged = function (transpose, _opts) {
     
 // flavio debug    if( this.changing ) return;
 this.parserparams.hideFingering = !this.parserparams.hideFingering;
+this.parserparams.hideLyrics = !this.parserparams.hideLyrics;
     
     this.changing = true;
     var opts = _opts || {};

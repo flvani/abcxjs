@@ -165,6 +165,7 @@ window.ABCXJS.parse.parseDirective = {};
 			//					wordsfont: fontType,
                         
 			case "bagpipes":tune.formatting.bagpipes = true;break;
+			case "hideLyrics": tune.formatting.hideLyrics = true; break;
 			case "hidefingering": tune.formatting.hideFingering = true; break;
 			case "restsintab": tune.formatting.restsInTab = true; break;
 			case "tabprintrowsnumbered": tune.formatting.tabprintrowsnumbered = true; break;

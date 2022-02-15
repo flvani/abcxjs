@@ -134,6 +134,7 @@ window.ABCXJS.data.Tune = function() {
 
         //aqui temos diretivas que também serão opções de tela. 
         //por definição, a diretiva terá precedência sobre as opções de tela        
+        if (!this.formatting.hideLyrics )           this.formatting.hideLyrics = vars.hideLyrics || false;
         if (!this.formatting.hideFingering )        this.formatting.hideFingering = vars.hideFingering || false;
         if (!this.formatting.tabprintrowsnumbered ) this.formatting.tabprintrowsnumbered = vars.ilheirasNumeradas || false;
         
