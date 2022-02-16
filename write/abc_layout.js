@@ -535,7 +535,7 @@ ABCXJS.write.Layout.prototype.printNote = function(elem, nostem, dontDraw) { //s
             maxLen = Math.max( maxLen, (ly.syllable + ly.divider).length );
         });
         lyricStr = lyricStr.substring(1); // remove the first linefeed
-        abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, -5, {type: "lyrics"}));
+        abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, 0, {type: "lyrics"}));
     }
     
     if (elem.fingering !== undefined  && !this.tune.formatting.hideFingering) {

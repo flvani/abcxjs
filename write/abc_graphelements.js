@@ -160,11 +160,14 @@ ABCXJS.write.StaffGroupElement.prototype.calcShiftAbove = function(voz) {
   return (abv+2) * ABCXJS.write.spacing.STEP;
 };
 
-ABCXJS.write.StaffGroupElement.prototype.calcHeight = function(voz) {
+ABCXJS.write.StaffGroupElement.prototype.calcHeight = function(voz, hideLyrics) {
     // calculo da altura da pauta + uma pequena folga
-    var h = (2+voz.stave.highest-voz.stave.lowest) * ABCXJS.write.spacing.STEP;
-    // inclui espaço para as linhas de texto
-    h += 14 * voz.stave.lyricsRows;
+    var h = (3+voz.stave.highest-voz.stave.lowest) * ABCXJS.write.spacing.STEP;
+
+    // inclui espaço para as linhas de texto - se existirem e estiverem visiveis
+    if( ! hideLyrics )
+        h += 15 * voz.stave.lyricsRows;
+
     return h;
 };
 
@@ -222,7 +225,7 @@ ABCXJS.write.StaffGroupElement.prototype.draw = function(printer, groupNumber) {
                 y += 5 ;
             }
 
-            h = this.calcHeight(this.voices[i]);
+            h = this.calcHeight(this.voices[i], printer.currentTune.formatting.hideLyrics);
 
             this.voices[i].stave.top = y;
             this.voices[i].stave.y = y + shiftabove;
