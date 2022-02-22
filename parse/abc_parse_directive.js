@@ -173,11 +173,9 @@ window.ABCXJS.parse.parseDirective = {};
 			case "stretchlast":tune.formatting.stretchlast = true;break;
 			case "titleleft":tune.formatting.titleleft = true;break;
 			case "measurebox":tune.formatting.measurebox = true;break;
-
-                        case "landscape":multilineVars.landscape = true;break;
+			case "landscape":multilineVars.landscape = true;break;
 			case "papersize":multilineVars.papersize = restOfString;break;
 			case "titlecaps":multilineVars.titlecaps = true;break;
-
 			case "botmargin":
 			case "botspace":
 			case "composerspace":

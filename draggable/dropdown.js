@@ -351,6 +351,9 @@ DRAGGABLE.ui.DropdownMenu.prototype.highlightItem = function (ddm, up) {
     // up can be true or false (indicating direction) or it can be a string indicating an item
     var toSel = up, next = false, prev;
     var menu = this.headers[ddm];
+
+    if( menu === undefined ) return;
+
     var acts = menu.actionList;
     if( typeof up === "boolean" ) {
         toSel = false;
