@@ -497,6 +497,8 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 							break;
 						case  's':
 							return {symbols: true};
+						case  'b':
+							return {bassfingering: true};
 						case  'f':
 							return {fingering: true};
 						case  'w':

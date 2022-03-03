@@ -308,6 +308,7 @@ ABCXJS.write.StaffGroupElement.prototype.draw = function(printer, groupNumber) {
 ABCXJS.write.VoiceElement = function(voicenumber, staffnumber, abcstaff) {
     this.children = [];
     this.fingers = [];
+    this.bassfingers = [];
     this.beams = [];
     this.otherchildren = []; // ties, slurs, triplets
     this.w = 0;
@@ -338,6 +339,10 @@ ABCXJS.write.VoiceElement.prototype.addChild = function(child) {
         if(child.children[i].type === 'fingering'){
             var relativeChild =  child.children[i] ;
             this.fingers[this.fingers.length] = relativeChild ;
+            child.children.splice(i,1);
+        } else  if(child.children[i].type === 'bassfingering'){
+            var relativeChild =  child.children[i] ;
+            this.bassfingers[this.bassfingers.length] = relativeChild ;
             child.children.splice(i,1);
         }
     }
@@ -662,6 +667,9 @@ ABCXJS.write.RelativeElement.prototype.draw = function(printer, x, staveInfo ) {
             break;
         case "fingering":
             this.graphelem = printer.printFingering(this.x, staveInfo, this.c);
+            break;
+        case "bassfingering":
+            this.graphelem = printer.printBassFingering(this.x, staveInfo, this.c);
             break;
         case "lyrics":
             this.graphelem = printer.printLyrics(this.x, staveInfo, this.c);

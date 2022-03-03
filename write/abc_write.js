@@ -482,11 +482,20 @@ ABCXJS.write.Printer.prototype.printLyrics = function(x, staveInfo, msg) {
 };
 
 ABCXJS.write.Printer.prototype.printFingering = function(x, staveInfo, msg) {
-    var y = this.calcY(staveInfo.lowest)-10;
+    var y = this.calcY(staveInfo.lowest+4);
     try {
         this.paper.printSymbol(x-3, y, 'cn.'+msg.trim());
     } catch(e){
-        this.paper.text(x, y+12, msg.trim(), 'abc_lyrics', 'start');        
+        this.paper.text(x, y+12, msg.trim(), 'abc_fingers', 'start');        
+    }
+};
+
+ABCXJS.write.Printer.prototype.printBassFingering = function(x, staveInfo, msg) {
+    var y = this.calcY(staveInfo.highest+1.5);
+    try {
+        this.paper.printSymbol(x-3, y, 'cn.'+msg.trim());
+    } catch(e){
+        this.paper.text(x, y+12, msg.trim(), 'abc_bassfingers', 'start');        
     }
 };
 

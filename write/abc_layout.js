@@ -169,14 +169,49 @@ ABCXJS.write.Layout.prototype.layoutABCLine = function( abctune, line, width ) {
         var fingerIdx = 0;
         if(this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
             var voz = this.staffgroup.voices[2].children;
+            var stave = this.staffgroup.voices[2].stave;
             for (i=0; i<voz.length; i++) {
                 if(voz[i].abcelem.el_type === 'note'){
                     //verificar se algum dos pitches, que não seja baixo, é do tipo 'tabText'[2|3]
                     var pitches = voz[i].abcelem.pitches
                     for (p=0; p<pitches.length; p++) {
                         if(pitches[p].type.substr(0,7) === 'tabText' && pitches[p].c !== 'scripts.rarrow' && pitches[p].bass === undefined && fingerIdx < fingers.length ){
-                            voz[i].children[voz[i].children.length] = fingers[fingerIdx++];
+                            if(fingers[fingerIdx].c.trim() !== '*' ) {
+                                voz[i].children[voz[i].children.length] = fingers[fingerIdx++];
+                                voz[i].children[voz[i].children.length-1].dx =-5;
+                                //voz[i].children[voz[i].children.length-1].parent.pushBottom()
+                                stave.lowest = Math.min(-4, stave.lowest);
+                            } else {
+                                fingerIdx++
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            // existe dedilhado mas não consegui tratar 
+            console.log('abc_layout: existe dedilhado mas não consegui tratar')
+        }
+    }
+    if( this.staffgroup.voices[1].stave.clef.type === 'bass' &&  this.staffgroup.voices[1].bassfingers.length > 0 ) {
+        var bassfingers = this.staffgroup.voices[1].bassfingers;
+        var bassFingerIdx = 0;
+        if(this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
+            var voz = this.staffgroup.voices[2].children;
+            var stave = this.staffgroup.voices[2].stave;
+            for (i=0; i<voz.length; i++) {
+                if(voz[i].abcelem.el_type === 'note'){
+                    //verificar se algum dos pitches, que não seja baixo, é do tipo 'tabText'[2|3]
+                    var pitches = voz[i].abcelem.pitches
+                    for (p=0; p<pitches.length; p++) {
+                        if(pitches[p].type.substr(0,7) === 'tabText' && pitches[p].c !== 'scripts.rarrow' && pitches[p].bass && bassFingerIdx < bassfingers.length ){
+                            voz[i].children[voz[i].children.length] = bassfingers[bassFingerIdx++];
                             voz[i].children[voz[i].children.length-1].dx =-5;
+                            //voz[i].children[voz[i].children.length-1].y = 24;
+                            //voz[i].children[voz[i].children.length-1].parent.pushTop(24)
+                            stave.highest = Math.max(25.5, stave.highest);
+                        
                             break;
                         }
                     }
@@ -547,6 +582,17 @@ ABCXJS.write.Layout.prototype.printNote = function(elem, nostem, dontDraw) { //s
         });
         lyricStr = lyricStr.substring(1); // remove the first linefeed
         abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, 0, {type: "fingering"}));
+    }
+
+    if (elem.bassfingering !== undefined  && !this.tune.formatting.hideFingering) {
+        var lyricStr = "";
+        var maxLen = 0;
+        window.ABCXJS.parse.each(elem.bassfingering, function(ly) {
+            lyricStr += "\n" + ly.syllable + ly.divider ;
+            maxLen = Math.max( maxLen, (ly.syllable + ly.divider).length*1.3 );
+        });
+        lyricStr = lyricStr.substring(1); // remove the first linefeed
+        abselem.addRight(new ABCXJS.write.RelativeElement(lyricStr, 0, maxLen * 5, 0, {type: "bassfingering"}));
     }
 
     if (!dontDraw && elem.gracenotes !== undefined) {

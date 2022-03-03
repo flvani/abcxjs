@@ -594,7 +594,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
         return ret;
     };
 
-    var addWords = function(staff, line, words, fingers) {
+    var addWords = function(staff, line, words, fingers, bassfingers) {
 //        este bloco parece não fazer sentido        
 //        if (!line) {
 //            warn("Can't add words before the first line of music", words, 0);
@@ -605,7 +605,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
             words = words + ' ';	// Just makes it easier to parse below, since every word has a divider after it.
         var word_list = [];
 
-        if(!fingers)
+        if(!(fingers || bassfingers))
             staff.lyricsRows++;
 
         // first make a list of words from the string we are passed. A word is divided on either a space or dash.
@@ -616,6 +616,10 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
             
             if (fingers && word.trim() !== "" && ".1.2.3.4.5.23.24.25.34.35.45.234.235.245.345.2345.*.".indexOf("."+word.trim()+".") < 0 ) {
                 warn( "Alien fingering detected", words, i-word.trim().length );
+            }
+
+            if (bassfingers && word.trim() !== "" && ".1.2.3.4.5.23.24.25.34.35.45.234.235.245.345.2345.*.".indexOf("."+word.trim()+".") < 0 ) {
+                warn( "Alien bass-fingering detected", words, i-word.trim().length );
             }
             
             last_divider = i + 1;
@@ -648,8 +652,13 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                     word_list.push({skip: true, to: 'slur'});
                     break;
                 case '*':
-                    addWord(i);
-                    word_list.push({skip: true, to: 'next'});
+                    if(!(fingers || bassfingers)) {
+                        addWord(i);
+                        word_list.push({skip: true, to: 'next'});
+                    } else {
+                        addWord(i);
+                        word_list.push({syllable: '*', divider: ' ' });
+                    }
                     break;
                 case '|':
                     addWord(i);
@@ -682,7 +691,12 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                 } else {
                     if (el.el_type === 'note' && el.rest === undefined && !inSlur) {
                         var word = word_list.shift();
-                        if( fingers ) {
+                        if( bassfingers ){
+                            if (el.bassfingering === undefined)
+                                el.bassfingering = [word];
+                            else
+                                el.bassfingering.push(word);
+                        } else if( fingers ) {
                             if (el.fingering === undefined)
                                 el.fingering = [word];
                             else
@@ -1833,10 +1847,12 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
         }
         if (ret.newline && multilineVars.continueall === undefined)
             startNewLine();
+        if (ret.bassfingering)
+            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), false, true);
         if (ret.fingering)
-            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), true);
+            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), true, false);
         if (ret.words)
-            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), false);
+            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), false, false);
         if (ret.symbols)
             addSymbols(tune.getCurrentVoice(), line.substring(2));
         if (ret.recurse)
