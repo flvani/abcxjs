@@ -3,6 +3,9 @@
 @font-face { font-family: 'AllertaStencil'; src: url('./AllertaStencil-Regular.ttf') format('truetype'); }
 @font-face { font-family: 'Merienda';       src: url('./Merienda-Regular.ttf') format('truetype'); }
 @font-face { font-family: 'DejaVuSansMono'; src: url('./DejaVuSansMono.ttf') format('truetype'); }
+@font-face { font-family: 'RobotoRegular'; src: url('./Roboto-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'RobotoItalic'; src: url('./Roboto-Italic.ttf') format('truetype'); }
+@font-face { font-family: 'RobotoBold'; src: url('./Roboto-Bold.ttf') format('truetype'); }
 
 /*
 @font-face { font-family: 'abcEditor';              src: url('./DejaVuSansMono.ttf') format('truetype'); }
