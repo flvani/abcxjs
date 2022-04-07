@@ -167,7 +167,7 @@ ABCXJS.write.Layout.prototype.layoutABCLine = function( abctune, line, width ) {
     if( this.staffgroup.voices[0].stave.clef.type === 'treble' &&  this.staffgroup.voices[0].fingers.length > 0 ) {
         var fingers = this.staffgroup.voices[0].fingers;
         var fingerIdx = 0;
-        if(this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
+        if(this.staffgroup.voices[2] && this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
             var voz = this.staffgroup.voices[2].children;
             var stave = this.staffgroup.voices[2].stave;
             for (i=0; i<voz.length; i++) {
@@ -191,13 +191,13 @@ ABCXJS.write.Layout.prototype.layoutABCLine = function( abctune, line, width ) {
             }
         } else {
             // existe dedilhado mas não consegui tratar 
-            console.log('abc_layout: existe dedilhado mas não consegui tratar')
+            console.log('abc_layout: existe dedilhado, mas não consegui tratar!')
         }
     }
-    if( this.staffgroup.voices[1].stave.clef.type === 'bass' &&  this.staffgroup.voices[1].bassfingers.length > 0 ) {
+    if( this.staffgroup.voices[1] && this.staffgroup.voices[1].stave.clef.type === 'bass' &&  this.staffgroup.voices[1].bassfingers.length > 0 ) {
         var bassfingers = this.staffgroup.voices[1].bassfingers;
         var bassFingerIdx = 0;
-        if(this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
+        if(this.staffgroup.voices[2] && this.staffgroup.voices[2].stave.clef.type === 'accordionTab') {
             var voz = this.staffgroup.voices[2].children;
             var stave = this.staffgroup.voices[2].stave;
             for (i=0; i<voz.length; i++) {
@@ -219,7 +219,7 @@ ABCXJS.write.Layout.prototype.layoutABCLine = function( abctune, line, width ) {
             }
         } else {
             // existe dedilhado mas não consegui tratar 
-            console.log('abc_layout: existe dedilhado mas não consegui tratar')
+            console.log('abc_layout: existe dedilhado para os baixos, mas não consegui tratar!')
         }
     }
 
