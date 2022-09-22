@@ -1,11 +1,25 @@
 
 
 var glyphnames = {
-  "\ue1a6":"uterm", 
-  "\ue1a7":"dterm" 
+   "l":"l" 
+  ,"f":"f" 
+  ,"F":"F" 
+  ,"i":"i"
+  ,"n":"n"
+  ,"e":"e"
+  ,"D":"D"
+  ,"d":"d"
+  ,"a":"a"
+  ,"C":"C"
+  ,"c":"c"
+  ,"p":"p"
+  ,"o":"o"
+  ,"S":"S"
+  ,"s":"s"
+  ,".":"."
 };
         
-var glyphnames_old = {
+var glyphnamesEmmentaler = {
   "\ue100":"rests.whole", // whole
   "\ue101":"rests.half", // half
   "\ue107":"rests.quarter", // quarter
@@ -172,6 +186,7 @@ Raphael.fn.toRelative = function(pathArray) {
 
 function scale_font(font, size, raphael) {
   var scale = size / font.face["units-per-em"];
+  var txt= document.getElementById("texto") 
   var res = [];
   for (var glyph in glyphnames) {
     var symb;
@@ -188,15 +203,17 @@ function scale_font(font, size, raphael) {
       path[0][2]=+path[0][2].toFixed(3);
       var w = Math.round(symb.getBBox().width*1000)/1000;
       var h = Math.round(symb.getBBox().height*1000)/1000;
-      gstr= "'";
+      gstr= "\t, '";
       gstr+=glyphnames[glyph];
       gstr += "':{d:";
       gstr += path.toSource();
       gstr +=",w:"+w+",h:"+h+"}";
-      res[res.length] = gstr;
+      //res[res.length] = gstr;
+      txt.value = txt.value + '\n'+ gstr;
+
     
   }
-  document.write("{"+res.join(",")+"}");
+  //document.write("{"+res.join(",")+"}");
 } 
 
 

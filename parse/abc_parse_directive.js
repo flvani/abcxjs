@@ -163,16 +163,19 @@ window.ABCXJS.parse.parseDirective = {};
 			//					vocalabove: { type: "boolean", optional: true },
 			//					vocalfont: fontType,
 			//					wordsfont: fontType,
+                        
 			case "bagpipes":tune.formatting.bagpipes = true;break;
-			case "landscape":multilineVars.landscape = true;break;
-			case "papersize":multilineVars.papersize = restOfString;break;
-                        case "restsintab": multilineVars.restsintab = true; break;
+			case "hideLyrics": tune.formatting.hideLyrics = true; break;
+			case "hidefingering": tune.formatting.hideFingering = true; break;
+			case "restsintab": tune.formatting.restsInTab = true; break;
+			case "tabprintrowsnumbered": tune.formatting.tabprintrowsnumbered = true; break;
 			case "slurgraces":tune.formatting.slurgraces = true;break;
 			case "stretchlast":tune.formatting.stretchlast = true;break;
-			case "titlecaps":multilineVars.titlecaps = true;break;
 			case "titleleft":tune.formatting.titleleft = true;break;
 			case "measurebox":tune.formatting.measurebox = true;break;
-
+			case "landscape":multilineVars.landscape = true;break;
+			case "papersize":multilineVars.papersize = restOfString;break;
+			case "titlecaps":multilineVars.titlecaps = true;break;
 			case "botmargin":
 			case "botspace":
 			case "composerspace":
@@ -202,6 +205,16 @@ window.ABCXJS.parse.parseDirective = {};
 					return vskip.error;
 				tune.addSpacing(vskip);
 				return null;
+			case "tabinferenceopts":
+				scratch = "";
+				window.ABCXJS.parse.each(tokens, function(tok) {
+					scratch += tok.token;
+				});
+				num = parseFloat(scratch);
+				if (isNaN(num) || num === 0)
+					return "Directive \"" + cmd + "\" requires positive or negativenumber a number as a parameter.";
+				tune.formatting.tabInferenceOpts = num;
+				break;
 			case "scale":
 				scratch = "";
 				window.ABCXJS.parse.each(tokens, function(tok) {
@@ -330,10 +343,10 @@ window.ABCXJS.parse.parseDirective = {};
 					if (brace !== undefined) staff.brace = brace;
 					if (continueBar) staff.connectBarLines = 'end';
 					if (multilineVars.voices[id] === undefined) {
-                                                                                                            staff.inEnding[staff.numVoices] = false;
-                                                                                                            staff.inTie[staff.numVoices] = false;
-                                                                                                            staff.inTieChord[staff.numVoices] ={};
-						multilineVars.voices[id] = {staffNum: staff.index, index: staff.numVoices};
+                                                staff.inEnding[staff.numVoices] = false;
+                                                staff.inTie[staff.numVoices] = false;
+                                                staff.inTieChord[staff.numVoices] ={};
+						multilineVars.voices[id] = {staffNum: staff.index, index: staff.numVoices, currBarNumber:1};
 						staff.numVoices++;
 					}
 				};

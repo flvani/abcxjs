@@ -1,0 +1,112 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 12/11/2018, 14:19:16
+    Author     : Flávio Vani
+*/
+
+.slide-container {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  margin-top: -2px;
+  border-radius: 3px;
+  font-family: "Milonga", "Lucida Grande","Lucida Sans Unicode", Tahoma, Sans-Serif !important;
+	font-size: 12px;
+  font-weight: bolder;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.slide-tracker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border-radius: 5px;
+}
+
+.slide-thumb  {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.slide-thumb > span {
+  display: block;
+	position: absolute;
+  left: 50%;
+  top: 0;
+	transform: translate(-50%, 0);
+  border-radius: 6px;
+  text-shadow: 1px 1px gray;
+  box-shadow: 1px 1px gray;
+  opacity: 60%;
+}
+
+.slide-container > input[type='range'] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background: transparent;
+  cursor: crosshair;
+}
+
+.slide-container > input[type='range']{
+  -webkit-appearance: none;
+}
+.slide-container > input[type='range']::-webkit-slider-runnable-track{
+  -webkit-appearance: none;
+} 
+.slide-container > input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+
+.slide-container >  input[type='range']::-moz-range-track {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background: transparent;
+  background-size: 0% 100%;
+}
+
+.slide-container > input[type='range']::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background: transparent;
+  background-size: 0% 100%;
+}
+
+.slide-container > input[type='range']::-webkit-slider-thumb {
+  margin-top: -1px;
+  border: none;
+  height: 100%;
+  width: 0;
+  background:transparent;
+  border-radius: 5px;
+}
+
+.slide-container >  input[type='range']::-moz-range-thumb {
+  margin-top: -1px;
+  border: none;
+  height: 100%;
+  width: 0;
+  background:transparent;
+  border-radius: 5px;
+}
+
+.slide-container > input[type='range']:focus {
+  outline: none;
+}

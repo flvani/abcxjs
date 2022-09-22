@@ -1,6 +1,7 @@
 ﻿{
    "id":"GAITA_HOHNER_CLUB_IIIM_BR"
   ,"model":"Hohner Club IIIM (BR)"
+  ,"menuOrder" : 3
   ,"tuning":["C","F"]
   ,"buttons":["30","8"]
   ,"pedal":[2,6]

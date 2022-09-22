@@ -2,22 +2,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>abcjs: Font Generator</title>
-	<script src="raphael/raphael_2.1.4.js"></script>
-	<script src="font_generator/Emmentaler_400.font.js"></script>
+	<!--script src="raphael/raphael_2.1.4.js"></script-->
+	<script src="font_generator/raphael_old.js"></script>
+	<script src="font_generator/fonts.js"></script>
 	<script src="write/sprintf.js"></script>
 	<script src="font_generator/scalefontemmentaler.js"></script>
 
 	<script>
 		function doFont() {
 			var paper = Raphael(document.getElementById("canvas"), 1000, 600);
-			var font = paper.getFont("Emmentaler", 500);
-			scale_font(font, 40, paper);
+			//var font = paper.getFont("Emmentaler", 500);
+			var font = paper.getFont("URW Chancery L", 500);
+			scale_font(font, 20, paper);
 		}
 
 		function showFont() {
 			var paper = Raphael(document.getElementById("canvas"), 1000, 10000);
-			var font = paper.getFont("Emmentaler", 500);
-			var scale = 30 / 1000;
+			//var font = paper.getFont("Emmentaler", 500);
+			var font = paper.getFont("URW Chancery L", 1000);
+                        var scale = 30 / 1000;
 			var x = 0;
 			var y = 50;
 			for (glyph in font.glyphs) {
@@ -36,8 +39,13 @@
 		}
 	</script>
 </head>
-<body onload="doFont();">
-<!--textarea id="texto" cols="100" rows="20"></textarea-->   
+<body onload="showFont();">
+    <h1>Gerador de fontes</h1>
+    <p>Este programa vai funcionar se a funcao path.toSource() estiver definida. Tente no Firefox.</p>
+    <p>Escolha a fonte Emmentaler ou URW no codigo acima.</p>
+<input type="submit" id="dofont" value="Gerar Fonte" onclick="javascript:doFont();" />
+<br>
+<textarea id="texto" cols="100" rows="20"></textarea>   
 <div id="canvas"></div>
 
 </body>

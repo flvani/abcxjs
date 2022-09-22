@@ -1,0 +1,114 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 28/07/2017, 19:21:49
+    Author     : p_7236
+*/
+
+.menu-group {
+    width: auto;
+    height: auto;
+    white-space: normal;
+    display: block;
+    margin: 20px;
+    margin-top: 10px;
+}
+
+.menu-group th {
+    text-align: left;
+}
+
+.menu-group label,
+.menu-group button {
+    position: relative;
+    display: block;
+    float:left;
+    text-align: left;
+    font-family: 'Milonga','RobotoRegular';
+    font-weight: normal;
+    font-size: 20px;
+    line-height: 16px;
+    height: 26px;
+    width: auto;
+    /*text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);*/
+    left: 0;
+    margin: 0;
+    margin-left: 4px;
+    padding: 4px;
+    outline: none !important;
+    border: none;
+    color: black;
+    background-color: transparent;
+    
+}
+
+.menu-group > label {
+    text-align: left;
+    padding-top: 6px;
+    height: 16px;
+    font-size: 16px;
+}
+
+
+.menu-group input[type="text"] {
+    width: 4em;
+    height: 22px;
+    width: 60px;
+    padding: 0;
+    margin: 0;
+    border-color: gray;
+    margin-top: 2px;
+    margin-left: 5px;
+    padding-left:2px;
+}
+
+.menu-group button:hover {
+    background:  lavender;
+    cursor: pointer;
+}
+
+.menu-group button::-moz-focus-inner {
+  border: 0;
+}
+
+.menu-group img {
+    top: -4px;
+    height:20px;
+}    
+
+.checkbox-group {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 10px;
+    margin-top: 2px;
+    height: 25px;
+    padding: 2px;
+}
+
+.others-group {
+    display: inline-block;
+    vertical-align: middle;
+    height: 26px;
+    line-height: 26px;
+    padding: 0;
+    margin: 0;
+}
+
+.playtime-label {
+    display: inline-block;
+    vertical-align: middle;
+    width:60px;
+    text-align: center;
+    line-height: 28px;
+    padding: 0;
+    margin: 0;
+    font-family: 'Lucida Sans Unicode', 'Trebuchet MS', 'Arial';
+    font-stretch: narrower;
+    font-weight: bold;
+    font-kerning: normal;
+    font-size: 20px;
+}   
+

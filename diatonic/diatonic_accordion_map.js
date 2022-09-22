@@ -10,14 +10,14 @@ if (!window.DIATONIC)
 if (!window.DIATONIC.map)
     window.DIATONIC.map = {};
 
-DIATONIC.map.AccordionMap = function (res, local) {
+DIATONIC.map.AccordionMap = function (res, local, opts) {
     this.id = res.id;
     this.menuOrder = res.menuOrder;
     this.model = res.model;
     this.tuning = res.tuning;
     this.buttons = res.buttons;
-    this.image = res.image || 'img/accordion.default.gif';
-    this.keyboard = new DIATONIC.map.Keyboard( res.keyboard, res.pedal );
+    this.image = res.image || 'images/accordions/accordion.default.gif';
+    this.keyboard = new DIATONIC.map.Keyboard( res.keyboard, res.pedal, opts );
     this.songPathList = res.songPathList;
     this.practicePathList = res.practicePathList;
     this.chordPathList = res.chordPathList;
@@ -67,28 +67,13 @@ DIATONIC.map.AccordionMap.prototype.getPathToImage = function () {
     return this.image;
 };
 
-DIATONIC.map.AccordionMap.prototype.getChord = function (name) {
-    return this.chords.items[name];
-};
-DIATONIC.map.AccordionMap.prototype.setChord = function (name,content, addSort) {
-    this.chords.items[name] = content;
-    if(addSort) this.chords.sortedIndex.push( name );
+DIATONIC.map.AccordionMap.prototype.getAbcText = function (type, title) {
+    return this[type].items[title];
 };
 
-DIATONIC.map.AccordionMap.prototype.getSong = function (name) {
-    return this.songs.items[name];
-};
-DIATONIC.map.AccordionMap.prototype.setSong = function (name,content, addSort) {
+DIATONIC.map.AccordionMap.prototype.setSong = function (name, content, addSort) {
     this.songs.items[name] = content;
-    if(addSort) this.songs.sortedIndex.push( name );
-};
-
-DIATONIC.map.AccordionMap.prototype.getPractice = function (name) {
-    return this.practices.items[name];
-};
-DIATONIC.map.AccordionMap.prototype.setPractice = function (name,content, addSort) {
-    this.practices.items[name] = content;
-    if(addSort) this.practices.sortedIndex.push( name );
+    if( addSort ) this.songs.sortedIndex.push( name );
 };
 
 DIATONIC.map.AccordionMap.prototype.getFirstSong = function () {
@@ -106,10 +91,32 @@ DIATONIC.map.AccordionMap.prototype.getFirstChord = function () {
     return ret;
 };
 
+
+//DIATONIC.map.AccordionMap.prototype.getChord = function (name) {
+//
+//DIATONIC.map.AccordionMap.prototype.getChord = function (name) {
+//    return this.chords.items[name];
+//};
+//DIATONIC.map.AccordionMap.prototype.setChord = function (name,content, addSort) {
+//    this.chords.items[name] = content;
+//    if(addSort) this.chords.sortedIndex.push( name );
+//};
+//
+//DIATONIC.map.AccordionMap.prototype.getSong = function (name) {
+//    return this.songs.items[name];
+//};
+//DIATONIC.map.AccordionMap.prototype.getPractice = function (name) {
+//    return this.practices.items[name];
+//};
+//DIATONIC.map.AccordionMap.prototype.setPractice = function (name,content, addSort) {
+//    this.practices.items[name] = content;
+//    if(addSort) this.practices.sortedIndex.push( name );
+//};
+
 DIATONIC.map.AccordionMap.prototype.loadABCX = function(pathList, cb ) {
     var toLoad = 0;
     var path;
-    var objRet = { items:{}, sortedIndex: [] };
+    var objRet = { items:{}, ids: {}, details:{}, sortedIndex: [] };
     for (var s = 0; s < pathList.length; s++) {
         toLoad ++;
         FILEMANAGER.register('ABCX');
@@ -119,14 +126,27 @@ DIATONIC.map.AccordionMap.prototype.loadABCX = function(pathList, cb ) {
                 FILEMANAGER.deregister('ABCX', true);
                 var tunebook = new ABCXJS.TuneBook(data);
                 for (var t = 0; t < tunebook.tunes.length; t ++)  {
-                    objRet.items[tunebook.tunes[t].title] = tunebook.tunes[t].abc;
-                    objRet.sortedIndex.push( tunebook.tunes[t].title );
+                    var tune = tunebook.tunes[t];
+                    var id = tune.id;
+                    var hidden = false;
+                    if( id.toLowerCase().charAt(0) === 'h' ) {
+                        id = id.substr(1);
+                        hidden = true;
+                    }
+                    
+                    objRet.ids[id] = tune.title;
+                    objRet.items[tune.title] = tune.abc;
+                    objRet.details[tune.title] = { composer: tune.composer, id: id, hidden: hidden  };
+                    objRet.sortedIndex.push( tune.title );
                 }    
             })
             .fail(function( data, textStatus, error ) {
                 FILEMANAGER.deregister('ABCX', false);
                 var err = textStatus + ", " + error;
-                console.log( "ABCX Load Failed:\nLoading: " + data.responseText.substr(1,40) + '...\nError:\n ' + err );
+                if( data && data.responseText !== undefined )
+                    waterbug.log( "ABCX Load Failed:\nLoading: " + data.responseText.substr(1,40) + '...\nError:\n ' + err );
+                else
+                    waterbug.log( "ABCX Load Failed:\nLoading: " + path + "...\nError:\n " + err );
             })
             .always(function() {
                 toLoad --;

@@ -1,8 +1,30 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html>
     <head>
-        <link href="css/workspace.css" rel="stylesheet"></link>
-    
+	<title>Draw The Dots: Tune Editor</title>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/icon" href="images/favicon.ico"/>
+        <meta name="viewport" content="height=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0" />
+        
+        <link rel="stylesheet" href="fontsIco/fontsAbcx.css" />
+        <link rel="stylesheet" href="fontsGoogle/fontsGoogle.css" />
+        
+        <link rel="stylesheet" href="css/perfect-scrollbar.css">        
+        
+        <link rel="stylesheet" href="css/menu-group.css" />
+        <link rel="stylesheet" href="css/dropdown-menu.css" />
+        <link rel="stylesheet" href="css/tabbed-view.css" />
+        <link rel="stylesheet" href="css/draggable.css" >
+        <link rel="stylesheet" href="css/slider.css" />
+        
+        <link rel="stylesheet" href="css/workspace.css" />
+        
+        
+        <style>
+            ::-webkit-scrollbar { /* for Mac OS X support */
+                width: 0;
+            }
+          </style>        
+        
             <!-- 
           MAIN DATA STRUCTURES
         
@@ -35,9 +57,13 @@
              Verificar o transporte de keys com modos min e maj
              Verificar os limites máximo e mínimos para transporte de keys
              Ignorar Accents na transposição
+             Verificar o espaçamento para os jump markers
+             barsperstaff: ao dividir a linha decidir onde fica jumpinfo e barnumbers
+             Verificar durante o parse e incluir o barnumber na barra correta
              Tablatura: gerar mesmo sem o baixo
              Layout:    Revisar a impressão dos elementos ending, accents e lyrics
              Layout:    Revisar a de linhas de texto, quando há mais de uma linha
+             Layout:    Imprimir ao final da staff alguns jump markers
              Tablatura: imprimir os de pausas adequadamente no baixo
              Tablatura: parse
                 tratar numeros hexa
@@ -49,26 +75,42 @@
                 imprimir baseado na linha existente
                 melhorar a relação open/close do fole na melodia
                 revisar a impressão de múltiplas notas na mesma coluna
+                Verificar durante o parse e incluir o barnumber na barra correta
+             MIDI PARSER
+                Bug: falta informação de barra de compasso para didatic play measure e goto-measure
+                Bug: manter a informação de passadas quando existe um salto originado em compassos que estão debaixo da casa 1 (ending)
         
            TODO:
+             EDITOR: 
+                Bug: transposição de acordes de baixo
+                Melhorar a transposição dos baixos, mantendo na oitava correta
              Tablatura: 
                 tratar adequadamente os acordes (de baixo)      
                 promover a inversão do fole se a posição do botao for melhor
         
         -->
-	<title>Draw The Dots: Tune Editor</title>
-        <meta http-equiv="content-type" content="text/html; charset=UTF-8"></meta>
     </head>
-    <body class="mapa">
+    <body>
 
 	<script type="text/javascript" src="proto_noconflict.js" ></script>
+    <!--script type="text/javascript" src="jquery/jquery-1.11.1.min.js" ></script-->
+    <script type="text/javascript" src="jquery/jquery-3.6.0.min.js" ></script>
 
-        <script type="text/javascript" src="MIDI.js/MIDI_2.05-min.js"></script>
+        <!-- color picker -->
+        <script type="text/javascript" src="jslib/html5kellycolorpicker.js"></script>
         
-        <script type="text/javascript" src="jquery/jquery-1.11.1.min.js" ></script>
-	        
+        <script type="text/javascript" src="scroll/perfect-scrollbar.js"></script>
+        
+        <!-- suporte a MIDI -->
+        <script type="text/javascript" src="jslib/MIDI.js"></script>
+
         <script type="text/javascript" src="svg/svg.js" ></script>
         <script type="text/javascript" src="svg/glyphs.js" ></script>
+        
+        <script type="text/javascript" src="draggable/draggable.js"></script>
+        <script type="text/javascript" src="draggable/dialogs.js"></script>
+        <script type="text/javascript" src="draggable/dropdown.js"></script>
+        <script type="text/javascript" src="draggable/slider.js"></script>
         
         <script type="text/javascript" src="file/filemanager.js" ></script>
 
@@ -94,6 +136,9 @@
         <script type="text/javascript" src="write/abc_layout.js" ></script>
         <script type="text/javascript" src="write/abc_write.js" ></script>
 
+        <!-- console personalizada para Javascript -->
+        <script type="text/javascript" src="jslib/waterbug.js"></script> 
+        
         <!-- diatonic accordion map -->
         <script type="text/javascript" src="diatonic/diatonic_common.js"></script>
         <script type="text/javascript" src="diatonic/diatonic_accordion_map.js"></script>
@@ -106,267 +151,292 @@
         <script type="text/javascript" src="tablature/tablature_accordion_parse.js"></script>
         <script type="text/javascript" src="tablature/tablature_accordion_layout.js"></script>
         
+ 	<script type="text/javascript" src="edit/properties.js" ></script>
+ 	<script type="text/javascript" src="edit/translate.js" ></script>
+        
+ 	<script type="text/javascript" src="edit/abc_selectors.js" ></script>
+ 	<script type="text/javascript" src="edit/abc_editarea.js" ></script>
  	<script type="text/javascript" src="edit/abc_editor.js" ></script>
+        
+        <script type="text/javascript" src="ace/src/ace.js" ></script>
+        <!--                     menor
+            C,,   C,  E,  G,     C,  ^D,  G,
+            D,,   D, ^F,  A,     D,   F,  A,
+            E,,   E, ^G,  B,     E,   G,  B,
+            F,,   F,  A,  C      F,  ^G,  C
+            G,,   G,  B,  D      G,  ^A,  D
+            A,,   A, ^C   E      A,   C   E
+            B,,   B, ^D  ^F      B,   D  ^F
+            Bb,,  Bb, D   F      Bb, ^C   F
+        -->    
+    
 
     
-<div id="editorDiv" style="position: fixed; top:0; display:inline-block; background-color: gray; width:100%; z-index: 100;"> 
-<div id="editControl" style="display:inline-block;"> 
-
-<textarea id="svg_source" cols="120" rows="10" style="display: none;" >
+<textarea id="svg_source" class="abc_textarea" spellcheck="false" cols="120" rows="10" style="display: none;" >
 </textarea>
     
-<textarea id="abc" cols="120" rows="10"  style="display: inline;">
-X:1003
+<textarea id="abc" class="abc_textarea" spellcheck="false" cols="120" rows="10"  style="display: none;">
+X:6009
 %%barnumbers 0
 %%papersize A4
-%%pagenumbering
-T:Canto Alegretense
-C:Antônio Augusto Fagundes
-Z:Flávio Vani
-N:Mapa para Acordeons Diatônicos powered by ABCXJS.
-F:https://www.youtube-nocookie.com/embed/N0P94PhkGgw
-M:3/4
+%%tabinferenceopts -1
+%%barsperstaff 5
+T:Country Girl (corona)
+T:Für Zara
+R:Blues
+%Z:Flávio Vani
+%N:Mapa para Acordeões Diatônicos powered by ABCXJS.
+F:https://www.youtube-nocookie.com/embed/p3xMoscy9H4
+C:Hans Lüdemann
+C:(<a class="abc_link" href=https://www.facebook.com/groups/toquegaitaponto/?fref=nf target=_blank>arranjo Cezar Ferreira</a>)
+M:4/4
 L:1/8
-Q:120
+Q:160
 K:C
-P:Parte I
-V:1 Melodia
-|: z2 G2 G2 | "G"[FB]2 [FA] [FB]2 [FA] | [FB]2 [FA] [FA]2 [EG] | "C"[EG]6 |
-| z2 G2 G2 | "G"[FB]2 [FA] [FB]2 [FA] | [FB]2 [FA] [FA]2 [EG] | "C"[EG]6  |
-| z2 G2 G2 | "F"F2 F F2 G | A2 A G2 G | "C"E6  |
-| z2 F2 E2 | "G"[D]2 [GB] [GB]2 [FA] | [FA]2 [EG] [EG]2 [DF] | [CE]6 :|
-%%newpage
-P:Parte II
-|: z2 C2 C2 | C2 E E2 E | E2 E D2 D | "G"C2 B,4 |
-|  z2 D2 D2 | D2 F F2 E | E2 D D2 E | "C"E6 |
-|  z2 E2 E2 | "F" F2 F F2 G | A2 A G2 G | "C"E6 | 
-|  z2 F2 E2 | D2 [GB] [GB]2 [FA] | [FA]2 [EG] [EG]2 [DF] | "C"[CE]6 :|
-V:2 bass 
-|: C,, [C,E,G,] C,, [C,E,G,] C,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z |
-|  C,, [C,E,G,] C,, [C,E,G,] C,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z |
-|  C,, [C,E,G,] C,, [C,E,G,] C,, z | F,, [F,,A,,C,] F,, [F,,A,,C,] F,, z | F,, [F,,A,,C,] F,, [F,,A,,C,] F,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z |
-|  A,, [A,,C,E,] A,, [A,,C,E,] A,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z :|
-|: C,, [C,E,G,] C,, [C,E,G,] C,, z  | C,, [C,E,G,] C,, [C,E,G,] C,, z  | C,, [C,E,G,] C,, [C,E,G,] C,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z |
-|  G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z |
-|  C,, [C,E,G,] C,, [C,E,G,] C,, z | F,, [F,,A,,C,] F,, [F,,A,,C,] F,, z | F,, [F,,A,,C,] F,, [F,,A,,C,] F,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z |
-|  A,, [A,,C,E,] A,, [A,,C,E,] A,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | G,, [G,,B,,D,] G,, [G,,B,,D,] G,, z | C,, [C,E,G,] C,, [C,E,G,] C,, z :|
+V:1 treble
+|  d2 | [M:2/4] f2 | 
 V:3 accordionTab
-|: C+z c+z C+5' c+> C+5' z+> | G-[4'6'] g-[>>] G-[4'7] g-[4'6'] G-[>>] z-[4'7] | G-[4'6'] g-[>>] G-[4'7] g-[4'7] G-[>>] z+[4'5'] | C+[4'5'] c+[>>] C+[>>] c+[>>] C+[>>] z+[>>] |
-| C+z c+z C+5' c+> C+5' z+> | G-[4'6'] g-[>>] G-[4'7] g-[4'6'] G-[>>] z-[4'7] | G-[4'6'] g-[>>] G-[4'7] g-[4'7] G-[>>] z+[4'5'] | C+[4'5'] c+[>>] C+[>>] c+[>>] C+[>>] z+[>>] |
-| C+z c+z C+5' c+> C+5' z+> | F-4' f-> F-4' f-4' F-> z-5' | F-7 f-> F-7 f-5' F-> z-5' | C+4' c+> C+> c+> C+> z+> |
-| A-z a-z A-4' a-> A-5 z-> | G-3' g-> G-[5'6'] g-[5'6'] G-[>>] z-[4'7] | G-[4'7] g-[>>] G-[55'] g-[55'] G-[>>] z-[3'4'] | C+[3'4'] c+[>>] C+[>>] c+[>>] C+[>>] z+[>>] :|
-|: C+z c+z C+3' c+> C+3' z+> | C+3' c+> C+4' c+4' C+> z+4' | C+4' c+> C+4' c+5 C+> z+5 | G-4 g-> G-2' g-> G-> z-> |
-| G-z g-z G-3' g-> G-3' z-> | G-3' g-> G-4' g-4' G-> z-5 | G-5 g-> G-3' g-3' G-> z+4' | C+4' c+> C+> c+> C+> z+> |
-| C+z c+z C+4' c+> C+4' z+> | F-4' f-> F-4' f-4' F-> z-5' | F-7 f-> F-7 f-5' F-> z-5' | C+4' c+> C+> c+> C+> z+> |
-| A-z a-z A-4' a-> A-5 z-> | G-3' g-> G-[5'6'] g-[5'6'] G-[>>] z-[4'7] | G-[4'7] g-[>>] G-[55'] g-[55'] G-[>>] z-[3'4'] | C+[3'4'] c+[>>] C+[>>] c+[>>] C+[>>] z+[>>] :|
 </textarea>
-   </div>
-    <br/>
-    <div id="outrosControles" style="display:inline-block; color: #FFFFFF; background-color: #000; padding: 2px;">
-        <span id="spanNomeGaita">Acordeons: </span>
-        <select id="selGaitas" ></select>
-        <select id="selKey" ></select>
-        <input type="submit" id="maisOitava" value="+ Oitava" onclick="javascript:doTranspose(12);" />
-        <input type="submit" id="menosOitava" value="- Oitava" onclick="javascript:doTranspose(-12);" />
-        <input type="button" id="printBtn" value="Print Preview" />
-        <input type="submit" id="forceRefresh" value="Refresh" onclick="javascript:doForceRefresh();" />
-        <input type="checkbox" id="chkAutoRefresh" />Auto refresh 
-        <input type="checkbox" id="chkDebug" onclick="javascript:doCheckDebug();" />Debug
-        <input type="button" id="showMapBtn" value="Show Map" />
-        <input type="button" id="switch_source" value="ABC/SVG" />
-        <input type="button" id="playBtn" value="Play" />
-        <input type="button" id="pauseBtn" value="Pause" />
-        <input type="button" id="stopBtn" value="Stop" />
-        <label id="currentPlayTime" style="font-weight: bold; color: yellow; padding-left: 5px; padding-right: 3px;">00:00.00</label>
+
+<div id="topBar" class="topBar gradiente" >
+    <span class="topTitle">
+        Draw the dots
+        <a id="topSettings" class="topSettings"><i class="ico-cogs" ></i></a>
+    </span>
+    <div class="dropdown-group">
+        <div id="menu1Div" class="topMenu"></div>
     </div>
+</div> <!-- topBar -->
+<div id="studioDiv" class="studio"> 
+    <div id="editorDiv" class="editor"> 
+    <div id="controlDiv" style="display: none;" >
+        <div class="btn-group" >
+            <div id="menuAcordeonsDiv" class="topMenu" ></div>
+            <div id="menuKeyDiv" class="topMenu" ></div>
+            <button id="button8Up" onclick="javascript:doTranspose(12);" ><i class="ico-octave-up"></i></button>
+            <button id="button8Down" onclick="javascript:doTranspose(-12);" ><i class="ico-octave-down"></i></button>
+            <button id="showMapBtn" ><i class="ico-keyboard"></i>&nbsp;<span >Teclado</span></button>
+            <button id="showEditBtn" ><i class="ico-folder"></i>&nbsp;<span >Editor</span></button>
+            <button id="buttonPrint" ><i class="ico-printer"></i>&nbsp;<span id="DR_print">Imprimir</span></button>
+            <button id="buttonRefresh" onclick="javascript:doForceRefresh();" ><i class="ico-bolt"></i><span id="forceRefresh">Atualizar</span></button>
+            <button id="switch_source" style="display: none;" ><i class="ico-bolt"></i><span id="xx">ABC/SVG</span></button>
+            <button id="buttonPlay" ><i class="ico-play"></i></button>
+            <button id="buttonPause" ><i class="ico-pause"></i></button>
+            <button id="buttonStop" ><i class="ico-stop"></i></button>
+            <div class="others-group">
+                <label id="currentPlayTimeLabel" class="playtime-label">00:00:00</label>
+                <div id="slider01"></div>
+            </div>
+            <div class="checkbox-group" >
+                <!--input type="text" id="roBt" value="Ir..." />
+                <input type="checkbox" id="chkAutoRefresh" />Auto refresh--> 
+                <input type="checkbox" id="chkDebug" onclick="javascript:doCheckDebug();" />Debug
+            </div>
+        </div>
+        </div>
+</div>
     </div> <!-- editorDiv -->
-    <div id="warningsDiv"><hr></div>
-    <div id="canvasDiv" class="printPreviewClass"> </div>
-        
+</div>        
         <script type="text/javascript">
             
-            window.addEventListener('load', loadMIDI, false);
-
-            function loadMIDI() {
-                MIDI.loader = new widgets.Loader();
-                
-                MIDI.loadPlugin({
-                    soundfontUrl: "./soundfont/"
-                   ,instruments: "accordion"
-                   ,callback: postLoadMIDI
-                });
-            }
+            var myEditor;
             
-            function postLoadMIDI() {
-                MIDI.loader.stop();
-                MIDI.programChange(0, 21); // canais para accordeon
-                MIDI.programChange(1, 21); // 
-                MIDI.programChange(2, 21); // 
-                MIDI.programChange(3, 21); // 
-                MIDI.programChange(4, 21); // 
-                MIDI.programChange(5, 21); // 
+            window.addEventListener('load', loadAccordions, false);
+            
+            window.onresize = function()
+            {
+                (myEditor) && myEditor.resize();
+            };
+            
+            function loadAccordions() {
+
                 
+/*                 var a = new Date().getTime();
+                console.log("Wait a few seconds, then click OK: " + a );
+
+                var b = a;
+                while(b < a + 2000 ) {
+                    b = new Date().getTime();
+               }
+                var difference = (b - a) / 1000;
+
+                console.log("You waited: " + difference + " seconds: " + b); */
+
+                console.log( 
+                      '\nChrome: ' + ABCXJS.misc.isChrome() 
+                    + '\nCromium: ' + ABCXJS.misc.isChromium() 
+                    + '\nFirefox: ' + ABCXJS.misc.isFirefox()  
+                    + '\nOpera: ' + ABCXJS.misc.isOpera() 
+                    + '\nSafari: ' + ABCXJS.misc.isSafari() 
+                    + '\nInternet Explorer: ' + ABCXJS.misc.isIE() 
+                    + '\nEdge: ' + ABCXJS.misc.isEdge() + '\n '
+                );
+        
+                if( ABCXJS.misc.isIE() ){
+                    var alert = new DRAGGABLE.ui.Alert( 
+                        null, null, 
+                        'Notamos que você está usando o Internet Explorer.',
+                        'Infelizmente, algumas funcionalidades do site não estarão disponíveis para este navegador. Assim, '+
+                                ' sugerimos que você use, de preferência, os navegadores: '+
+                                '<ul><li>Chrome (chromium)</li><li>Firefox</li><li>Safari</li><li>MS-Edge</li></ul>' );
+                    return;
+                }
+                
+                MIDI.widget = new sketch.ui.Timer({size:180, cor1:'#ffffff', cor2:'#ffff88' });
+                MIDI.widget.setFormat( 'Carregando...');
+                MIDI.widget.setValue(1);
+
                 DIATONIC.map.loadAccordionMaps(
                     [
                        'accordions/hohner.gc.accordion'
                       ,'accordions/hohner.cf.club.br.accordion'
-                      ,'accordions/leticce.cf.ne.accordion'
+                      ,'accordions/concertina.gcf.portuguesa.accordion'
+                      ,'accordions/hohner.gcf.corona.accordion'
                     ]
-                    ,initApp // call back after loading
+                    ,{ isApp: true }
+                    , function () { // call back after loading
+                        FILEMANAGER.waitResources( { 
+                            onProgress: function(event) {
+                                if(event.success){
+                                    MIDI.widget.setValue(0+Math.round(event.perc*.1));
+                                    waterbug.log('\nPercentual: '+ event.perc + '\nTimeouts: ' + event.timeouts + '\n' + event.success );
+                                } else {
+                                    MIDI.widget.setValue(0+Math.round(event.perc*.1));
+                                    waterbug.log('\nPercentual: '+ event.perc);
+                                }
+                            }
+                            ,onLoad: loadMIDI 
+                        });
+                    }
                 );
+            }
+            
+            function loadMIDI() {
+                
+                MIDI.widget.setValue(10);
+                
+                MIDI.loadPlugin({
+                     soundfontUrl: "./soundfont/"
+                    //,instruments: ["accordion", "acoustic_grand_piano" ] 
+                    ,instruments: [ "accordion" ] 
+                    //,instruments: [ "acoustic_grand_piano" ] 
+                ,onprogress: function( total, done, currentPercent ) {
+                    var percent = ((done*100)+currentPercent)*90/(total*100);
+                    MIDI.widget.setValue(10+Math.round(percent));
+                }
+                ,callback: preLoad
+                });
+            }
+            
+            
+            function preLoad() {
+                
+                var setInstrument = function (piano) {
+                    //var instrumentId = 0;//= piano? 0: 21; // accordion
+                    var instrumentId = piano? 0: 21; // accordion
+                    MIDI.programChange( 0, instrumentId );
+                    MIDI.programChange( 1, instrumentId );
+                    MIDI.programChange( 2, instrumentId );
+                    MIDI.programChange( 3, instrumentId );
+                    MIDI.programChange( 4, instrumentId );
+                    MIDI.programChange( 5, instrumentId );
+                    MIDI.programChange( 7, 10 ); // qualquer instrumento não configurado
+                    
+//                    try {
+//                        MIDI.stopAllNotes();
+//                        MIDI.noteOn(0, 70, 60, 0);
+//                        MIDI.noteOff(0, 70, 1);
+//                        waterbug.log("no error"); 
+//                        waterbug.show(); 
+//
+//                    } catch(e) {
+//                        waterbug.log("error"); 
+//                        waterbug.show(); 
+//                    }
+                    
+                };
+                
+                setInstrument();
+                
+                SITE.translator = new SITE.Translator( { language: 'pt_BR', callback: initApp } );
+                SITE.properties.options.showConsole = true;
+                
             }
             
             function initApp() {
                 
                 ypos = 0;
                 lastYpos = 0;
+                lastStaffGroup = null;
                 debug = false;
                 myEditor = {};
 
-                printButton = document.getElementById("printBtn");
-                playButton = document.getElementById("playBtn");
-                pauseButton = document.getElementById("pauseBtn");
-                stopButton = document.getElementById("stopBtn");
-                showMapButton = document.getElementById("showMapBtn");
-                switchSourceButton = document.getElementById("switch_source");
-                cpt = document.getElementById("currentPlayTime");
-                
-                switchSourceButton.addEventListener("click", function() {
-                    a = document.getElementById('abc');
-                    s = document.getElementById('svg_source');
-                    if( s.style.display === 'inline' ) {
-                        s.style.display = 'none';
-                        a.style.display = 'inline';
-                    } else {
-                        s.value = document.getElementById('canvasDiv').innerHTML;
-                        s.style.display = 'inline';
-                        a.style.display = 'none';
-                    }
-                }, false);
-                
-                player = new ABCXJS.midi.Player();
-                
-                
-                playerCallBackOnPlay = function ( player ) {
-                    cpt.innerHTML = player.getTime().cTime;;
-                };
-                
-                playerCallBackOnScroll = function ( player ) {
-                    if( player.currChannel > 0 ) return;
-                    if( player.currAbsElem.screenY !== window.ypos ) {
-                        window.ypos = player.currAbsElem.screenY;
-                        window.scrollTo( 0, window.ypos - 40);    
-                    }
-                };
-                
-                playerCallBackOnEnd = function (player) {
-                    cpt.innerHTML = "00:00.00";
-                    myEditor.printer.clearSelection();
-                    var warns = player.getWarnings();
-                    window.scrollTo( 0, 0 );
-                    if( warns ) {
-                        var txt = "";
-                        warns.forEach(function(msg){ txt += msg + '<br>'; });
-                        document.getElementById("warningsDiv").innerHTML = '<hr>'+txt;
-                    }
-                };
-                
                 editorCallbackOnChange = function ( editor ) {
-                    editor.callback();
+                    window.scrollTo( 0, window.lastYpos );
                 };
                 
-                player.defineCallbackOnEnd(playerCallBackOnEnd);
-                player.defineCallbackOnPlay(playerCallBackOnPlay);
-                player.defineCallbackOnScroll(playerCallBackOnScroll);
- 
+                
                 myEditor = new ABCXJS.Editor(
-                    "abc", 
                     {
-                         canvas_id: "canvasDiv"
-                        ,abcText: "demo"
-                        ,refreshController_id: "chkAutoRefresh"
-                        ,keySelector_id: "selKey"
-                        ,accordionSelector_id: "selGaitas"
-                        ,accordionNameSpan: "spanNomeGaita"
-                        ,generate_midi: true
+                         menu_id: "menu1Div"
+                        ,studio_id: "studioDiv"
+                        ,canvas_id: "canvasDiv"
+                        ,control_id: 'controlDiv'
                         ,warnings_id: "warningsDiv"
                         ,generate_warnings: true
+                        ,settingsMenu:'topSettings'
+                        ,settingsDiv: 'settingsDiv'
+                        
+                        ,refreshController_id: "chkAutoRefresh"
+                        ,keySelector_id: "menuKeyDiv"
+                        ,accordionSelector_id: "menuAcordeonsDiv"
+                        ,accordionNameSpan: "spanNomeGaita"
+                        ,generate_midi: true
                         ,generate_tablature: 'accordion'
                         ,accordion_options: {
-                                 //id: 'GAITA_LETICCE_CF_NE'
-                                 id: 'GAITA_HOHNER_GC'
+                                 id: 'GAITA_HOHNER_CORONA_GCF'
+                                 //id: 'GAITA_HOHNER_GC'
                                //  id: 'GAITA_HOHNER_CLUB_IIIM_BR'
-                                ,keyboardDiv_id:"keyboardDiv"
+                                //,keyboardDiv_id:"keyboardDiv"
                                 ,accordionMaps: DIATONIC.map.accordionMaps
-                                ,render_keyboard_opts:{transpose:false, mirror: false, scale:1, draggable:false, show:true, label:false}}
+                                ,render_keyboard_opts:{transpose:false, mirror: true, scale:1, draggable:false, show:false, label:false}}
                         ,midi_options: {program: 21, qpm: 150, type: "qt"}
                         ,render_options: {}
                         ,onchange: editorCallbackOnChange
                         ,gui: false
                     } );
-                    
-                //myEditor.accordion.printKeyboard('keyboardDiv' /*, {fillColor:'yellow', openColor:'navy', closeColor:'purple', backgroundColor:'gray' }*/ );
-                myEditor.accordion.printKeyboard('keyboardDiv' );
-                    
-                printButton.addEventListener("click", function() {
-                    
-                    var kd = document.getElementById("keyboardDiv").style.display;
 
-                    document.getElementById("keyboardDiv").style.display = 'none';
-                    document.getElementById("editorDiv").style.display = "none";
-                    document.getElementById("warningsDiv").style.display = "none";
-                    document.body.style.paddingTop = '0px';
-                    
-                    window.print();
-                    
-                    document.body.style.paddingTop = '190px';
-                    document.getElementById("warningsDiv").style.display = "inline";
-                    document.getElementById("editorDiv").style.display = "inline";
-                    document.getElementById("keyboardDiv").style.display = kd;
-                }, false);
+                myEditor.setString( document.getElementById("abc").value );
+                myEditor.fireChanged( 0, {force: true} );
+                myEditor.menu.setSubMenuTitle('menuGaitas', myEditor.menu.selectItem('menuGaitas', 'Acordeon 2' ));
                 
-                playButton.addEventListener("click", function() {
-                    player.startPlay( myEditor.tunes[0].midi );
-                    player.startDidacticPlay(myEditor.tunes[0].midi, 'note');
-                    //player.startDidacticPlay(myEditor.tunes[0].midi, 'measure');
-                }, false);
-                pauseButton.addEventListener("click", function() {
-                    player.pausePlay();
-                }, false);
-                stopButton.addEventListener("click", function() {
-                    player.stopPlay();
-                }, false);
+                myEditor.menu.disableSubItem('menuRepertorio', 'LOADLOC' );
                 
-                showMapButton.addEventListener("click", function() {
-                    myEditor.accordion.render_keyboard_opts.show = !myEditor.accordion.render_keyboard_opts.show;
-                    this.value = myEditor.accordion.render_keyboard_opts.show? 'Hide Map':'Show Map';
-                    myEditor.accordion.printKeyboard('keyboardDiv');
-                }, false);
+//                window.setTimeout( function() { 
+//                }, 1000 );
                 
             }
 
             function doTranspose(value) {
                 var doc = document.documentElement;
                 window.lastYpos = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);                
-                myEditor.fireChanged(value, "force");
+                myEditor.fireChanged( value, {force: true} );
             };
 
             function doForceRefresh() {
                 var doc = document.documentElement;
                 window.lastYpos = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);                
-                myEditor.fireChanged(0, "force");
+                myEditor.fireChanged( 0, {force: true, showProgress:true} );
             };
 
             function doCheckDebug() {
                 debug = document.getElementById("chkDebug").checked;
                 var doc = document.documentElement;
                 window.lastYpos = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);                
-                myEditor.fireChanged(0, "force");
+                myEditor.fireChanged( 0, {force: true} );
             };
 
         </script>        
-
-        <div id="keyboardDiv"></div> 
     </body>
     
 </html>

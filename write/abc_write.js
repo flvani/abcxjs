@@ -23,25 +23,28 @@ if (!window.ABCXJS)
 if (!window.ABCXJS.write)
 	window.ABCXJS.write = {};
 
-ABCXJS.write.spacing = function() {};
+ABCXJS.write.spacing = {};
 ABCXJS.write.spacing.FONTEM = 360;
 ABCXJS.write.spacing.FONTSIZE = 30;
 ABCXJS.write.spacing.STEP = ABCXJS.write.spacing.FONTSIZE*(93)/720;
-ABCXJS.write.spacing.SPACE = 10;
+ABCXJS.write.spacing.SPACEX = 30;
 ABCXJS.write.spacing.TOPNOTE = 10; 
-ABCXJS.write.spacing.STAVEHEIGHT = 100;
 
+ABCXJS.write.color = {};
+ABCXJS.write.color.highLight = "#5151ff";
+ABCXJS.write.color.highLight = "#ff0000";
+ABCXJS.write.color.unhighLight = 'black';
+ABCXJS.write.color.useTransparency = true;
 
 //--------------------------------------------------------------------PRINTER
 
-ABCXJS.write.Printer = function (paper, params) {
+ABCXJS.write.Printer = function (paper, params, loadedKeyboard) {
 
     params = params || {};
     this.y = 0;
     this.pageNumber = 1;
     this.estimatedPageLength = 0;
     this.paper = paper;
-    this.space = 3 * ABCXJS.write.spacing.SPACE;
     this.glyphs = new ABCXJS.write.Glyphs();
     this.listeners = [];
     this.selected = [];
@@ -51,88 +54,91 @@ ABCXJS.write.Printer = function (paper, params) {
     this.paddingleft = params.paddingleft || 15;
     this.paddingright = params.paddingright || 30;
     this.editable = params.editable || false;
+    this.loadedKeyboard = loadedKeyboard || null; // preciso disso para gerar a pauta númerica (se houver)
     this.staffgroups = [];
-
 };
 
-ABCXJS.write.Printer.prototype.printABC = function(abctunes, options) {
-  if (abctunes[0]===undefined) {
-    abctunes = [abctunes];
-  }
-  this.y=0;
-  this.totalY = 0;
-  
-  //options = options || {};
-  //options.color='red';
-  
-  for (var i = 0; i < abctunes.length; i++) {
-    this.printTune( abctunes[i], options /*, {color:'red', backgroundColor:'#ffd'}*/ );
-  }
+ABCXJS.write.Printer.prototype.printABC = function (abctunes, options) {
+    if (abctunes[0] === undefined) {
+        abctunes = [abctunes];
+    }
+    this.y = 0;
+    this.totalY = 0; // screen position of an element
+
+    for (var i = 0; i < abctunes.length; i++) {
+        this.printTune(abctunes[i], options);
+    }
 
 };
 
 ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     
+    if( abctune.lines.length === 0 ) return;
+
+    this.currentTune = abctune; // substituir toda ocorrencia de abctune por this.currentTune
+    
     options = options || {};
     options.color = options.color ||'black';
     options.backgroundColor = options.backgroundColor ||'none';
     
-    
-    if( abctune.lines.length === 0 ) return;
+    ABCXJS.write.color.unhighLight = options.color;
     
     var estilo = 
 '\n\
+   .abc_link { font-weight: normal;  text-decoration: none; }\n\
+   .abc_link:hover { stroke: blue;  font-weight: normal;  text-decoration: none; }\n\
    .abc_title {\n\
-        font-size: 20px;\n\
-        font-family: serif;\n\
+        font-size: 18px;\n\
+        font-weight: bold;\n\
+        font-family: Merienda, serif;\n\
     }\n\
     \n\
     .abc_subtitle {\n\
         font-size: 16px;\n\
-        font-family: serif;\n\
+        font-family: Merienda, serif;\n\
         font-style: italic;\n\
     }\n\
     \n\
     .abc_author {\n\
         font-size: 14px;\n\
-        font-family: serif;\n\
+        font-family: Merienda, serif;\n\
         font-style: italic;\n\
         font-weight: bold;\n\
     }\n\
     \n\
     .abc_rhythm {\n\
         font-size: 12px;\n\
-        font-family: serif;\n\
+        font-family: Merienda, serif;\n\
         font-style: italic;\n\
     }\n\
     \n\
     .abc_voice_header {\n\
         font-size: 12px;\n\
-        font-family: serif;\n\
+        font-family: Merienda, serif;\n\
         font-style: italic;\n\
         font-weight: bold;\n\
     }\n\
     \n\
     .abc_tempo {\n\
         font-size: 12px;\n\
-        font-family: serif;\n\
+        font-family: Merienda, serif;\n\
         font-weight: bold;\n\
     }\n\
     \n\
     .abc_text {\n\
         font-size: 12px;\n\
-        font-family: serif;\n\
+        font-family: arial, serif;\n\
     }\n\
     \n\
     .abc_lyrics {\n\
         font-size: 13px;\n\
-        font-family: serif;\n\
-        font-weight: bold;\n\
+        font-family: Merienda, serif;\n\
+        font-weight: normal;\n\
     }\n\
     \n\
     .abc_ending {\n\
         font-size: 10px;\n\
-        font-family: serif;\n\
+        font-family: Merienda, serif;\n\
     }\n\
     \n\
     .abc_tabtext\n\
@@ -149,17 +155,8 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     \n\
     .abc_tabtext3 {\n\
         font-size: 10px;\n\
-    }   ';
+    }';
     
-    ABCXJS.write.unhighLightColor = options.color;
-    
-//     svg { --fill-color:'+options.color+'; } \n\
-//    .bar { fill: var(--fill-color, black); stroke:'+'none'+'; stroke-width:0.6; }\n\
-//    .stem { fill:'+'black'+'; stroke:'+'none'+'; stroke-width:0.6; }\n\
-//    .beam { fill:'+options.color+'; stroke:'none; }\n\
-//    .ledger { fill:white; stroke:'+options.color+'; stroke-width:0.6; stroke-dasharray: 1 1; }\n\
-//    .stave { fill:'+'none'+'; stroke:'+options.color+'; stroke-width:0.6; }\n  
-
     var svg_title = 'Partitura ' + abctune.metaText.title + ' criada por ABCXJS.';
     
     if( abctune.midi) {
@@ -178,14 +175,13 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     
     this.layouter = new ABCXJS.write.Layout( this, abctune.formatting.bagpipes );
     
-    
     this.calcPageLength();
     
     this.paper.initDoc( 'tune', svg_title, estilo, options );
     this.paper.initPage( this.scale );
 
     if (abctune.metaText.title) {
-        this.paper.text(this.width/2, this.y, abctune.metaText.title, "abc_title", "middle" );
+        this.paper.text(this.width/2, this.y+5, abctune.metaText.title, "abc_title", "middle" );
         this.y += 20;
     }    
 
@@ -204,7 +200,7 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
 
     if (composerLine.length > 0) {
         var n = composerLine.split('\n').length;
-        var dy = (n>1?(n>2?0:15):30);
+        var dy = (n>1?(n>2?0:5):30);
         this.paper.text(this.width, dy, composerLine, 'abc_author', 'end' );
     } 
     
@@ -236,7 +232,9 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
 
     var extraText1 = "", extraText2 = "",  height = 0, h1=0, h2=0;
     
-    if (abctune.metaText.unalignedWords) {
+
+    //FLAVIO -if hideLyrics,  talvez fosse interessante aplicar também aos metatextos abaixo.
+    if (abctune.metaText.unalignedWords && !abctune.formatting.hideLyrics) {
         for (var j = 0; j < abctune.metaText.unalignedWords.length; j++) {
             if (typeof abctune.metaText.unalignedWords[j] === 'string') {
                 extraText1 += abctune.metaText.unalignedWords[j] + "\n";
@@ -270,7 +268,7 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     }    
     
     if(h1> 0) {
-        height = ABCXJS.write.spacing.STEP*3 + h1*1.5*17; 
+        height = ABCXJS.write.spacing.STEP*3 + h1*1.5*16; 
         if( ( this.pageNumber - ((this.y+height)/this.estimatedPageLength) ) < 0 ) {
            this.skipPage();
         } else {
@@ -281,7 +279,7 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     }
 
     if(h2> 0) {
-        height = ABCXJS.write.spacing.STEP*3 + h2*1.5*17;
+        height = ABCXJS.write.spacing.STEP*3 + h2*1.5*16;
         if( ( this.pageNumber - ((this.y+height)/this.estimatedPageLength) ) < 0 ) {
            this.skipPage();
         } else {
@@ -298,7 +296,7 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     
     this.paper.endDoc(abctune);
     
-    this.formatPage(abctune);
+    this.formatPage();
     
     //binds SVG elements
     var lines = abctune.lines;
@@ -313,17 +311,9 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
             }
         }
     }
-
     
-//    // Correct for IE problem in calculating height
-//    if (ABCXJS.misc.isIE()) {
-//        this.paper.canvas.parentNode.style.width = "" +  sizetoset.w + "px";
-//        this.paper.canvas.parentNode.style.height = "" + sizetoset.h + "px";
-//    } else {
-//        this.paper.canvas.parentNode.setAttribute("style", "width:" + sizetoset.w + "px"); 
-//       // this.paper.canvas.parentNode.setAttribute("style", "height:" + sizetoset.h + "px");
-//       // this.paper.canvas.setAttribute("style", "background-color: #ffe"); 
-//    }
+    //this.paper.topDiv.style.width = "" +  (this.maxwidth + this.paddingright) + "px";
+    this.paper.topDiv.style.width = "auto";
 
 };
 
@@ -332,11 +322,13 @@ ABCXJS.write.Printer.prototype.printTempo = function (x, tempo) {
     this.y -= 5;
 
     var tempopitch = 5;
+    
+    this.paper.beginGroup();
 
     if (tempo.preString) {
         this.paper.text(x, this.calcY(tempopitch-0.8), tempo.preString, 'abc_tempo', 'start');
-        //x += (text.getBBox().width + 20*printer.scale);
         //fixme: obter a largura do texto
+        //x += (text.getBBox().width + 20*printer.scale);
         x += tempo.preString.length*5 + 5;
     }
 
@@ -369,6 +361,7 @@ ABCXJS.write.Printer.prototype.printTempo = function (x, tempo) {
     if (tempo.postString) {
         this.paper.text( x, this.calcY(tempopitch-0.8), tempo.postString, 'abc_tempo', 'start');
     }
+    this.paper.endGroup();
 
     this.y += 5;
     return abselem.x + abselem.w +4;
@@ -398,13 +391,14 @@ ABCXJS.write.Printer.prototype.printTieArc = function(x1, x2, pitch1, pitch2, ab
 
 ABCXJS.write.Printer.prototype.printStave = function (startx, endx, staff ) {
     if(staff.numLines === 4) {
-      this.printLedger(startx,endx, 19.5); 
+      // startx+1 e endx-1 pq a rotina faz um deslocamento contrario para desenhar o ledger
+      this.printLedger(startx+1,endx-1, 19.5); 
       
       // imprimo duas linhas para efeito
       this.paper.printStaveLine(startx,endx,this.calcY(15)-0.5 ); 
       this.paper.printStaveLine(startx,endx,this.calcY(15) ); 
       
-      this.printLedger(startx,endx, 7.5 ); 
+      this.printLedger(startx+1,endx-1, 7.5 ); 
       
       this.paper.printStaveLine(startx,endx,this.calcY(0)); 
     } else {
@@ -419,13 +413,7 @@ ABCXJS.write.Printer.prototype.printDebugLine = function (x1,x2, y, fill ) {
 };
 
 ABCXJS.write.Printer.prototype.printLedger = function (x1, x2, pitch) {
-      this.paper.printLedger(x1, this.calcY(pitch), x2, this.calcY(pitch) );
-      
-//    if( pitch < 2 || pitch > 10 ) {
-//      this.paper.printLedger(x1, this.calcY(pitch), Math.abs(x1-x2), 0.6 );
-//    } else {
-//      return null;
-//    }  
+    this.paper.printLedger(x1-1, this.calcY(pitch), x2+1, this.calcY(pitch) );
 };
 
 ABCXJS.write.Printer.prototype.printText = function (x, offset, text, kls, anchor ) {
@@ -435,8 +423,34 @@ ABCXJS.write.Printer.prototype.printText = function (x, offset, text, kls, ancho
 };
 
 ABCXJS.write.Printer.prototype.printTabText = function (x, offset, text, klass) {
+
     klass = klass || 'abc_tabtext';
-    this.paper.tabText(x, this.calcY(offset)+5, text, klass, 'middle');
+
+    //if( opcao tablatura !== alemã )
+    //btn.tabButton = (i + 1) + Array(j + 1).join("'");
+
+    var i = parseInt(text);
+    var j=(text.match(/'/g)||[]).length
+    var n=text;
+
+    if(this.loadedKeyboard.pautaNumerica && !isNaN(i) && this.loadedKeyboard.keyMap[j][i-1] && !this.loadedKeyboard.keyMap[j][i-1].closeNote.isBass){
+        var b = this.loadedKeyboard.keyMap[j][i-1]
+        var formato = this.loadedKeyboard.pautaNumericaFormato;
+        if( formato.overrides[b.tabButton] ){
+            n = formato.overrides[b.tabButton];
+         } else{
+            n =  i+formato.rule[j];
+         }
+    }
+
+    //se for um numero da tablatura e o formato é para numerar as ilheiras faz as devidas mudanças
+    if( this.currentTune.formatting.tabprintrowsnumbered && !isNaN(i) ){
+        this.paper.tabText(x, this.calcY(offset)+7, i, klass, 'middle');
+        this.paper.tabText(x+(i<10?6:9), this.calcY(offset)+2, j+1, 'abc_tabtext3', 'middle');
+    } else {
+        this.paper.tabText(x, this.calcY(offset)+5, n, klass, 'middle');
+    }
+
 };
 
 ABCXJS.write.Printer.prototype.printTabText2 = function (x, offset, text) {
@@ -447,8 +461,8 @@ ABCXJS.write.Printer.prototype.printTabText3 = function (x, offset, text) {
     return this.printTabText(x, offset, text, 'abc_tabtext3');
 };
 
-ABCXJS.write.Printer.prototype.printBar = function (x, dx, y1, y2) {
-    this.paper.printBar(x, dx, y1, y2);
+ABCXJS.write.Printer.prototype.printBar = function (x, dx, y1, y2, real) {
+    this.paper.printBar(x, dx, y1, y2, real);
 };
 
 ABCXJS.write.Printer.prototype.printStem = function (x, dx, y1, y2) {
@@ -459,9 +473,7 @@ ABCXJS.write.Printer.prototype.printDebugMsg = function(x, y, msg ) {
 };
 
 ABCXJS.write.Printer.prototype.printLyrics = function(x, staveInfo, msg) {
-    //var y = staveInfo.lowest-ABCXJS.write.spacing.STEP*staveInfo.lyricsRows;
-    //y += (staveInfo.lyricsRows-0.5);
-    y = this.calcY(staveInfo.lowest-(staveInfo.lyricsRows>1?0:3.7));
+    var y = this.calcY(staveInfo.lowest-(staveInfo.lyricsRows>1?0:3.7));
     
     // para manter alinhado, quando uma das linhas for vazia, imprimo 3 pontos
     var i = msg.indexOf( "\n " );
@@ -471,55 +483,100 @@ ABCXJS.write.Printer.prototype.printLyrics = function(x, staveInfo, msg) {
     
 };
 
-// notify all listeners that a graphical element has been selected
-ABCXJS.write.Printer.prototype.notifySelect = function (abselem) {
-  this.selected[this.selected.length]=abselem;
-  abselem.highlight();
-  for (var i=0; i<this.listeners.length;i++) {
-    this.listeners[i].highlight(abselem.abcelem);
-  }
+ABCXJS.write.Printer.prototype.printFingering = function(x, staveInfo, msg) {
+    var y = this.calcY(staveInfo.lowest+4);
+    try {
+        this.paper.printSymbol(x-3, y, 'cn.'+msg.trim());
+    } catch(e){
+        this.paper.text(x, y+12, msg.trim(), 'abc_fingers', 'start');        
+    }
 };
 
-// notify all listeners that a graphical element has been selected
-ABCXJS.write.Printer.prototype.notifyClearNSelect = function (abselem) {
-  this.clearSelection();
-  this.notifySelect(abselem);
-};
-
-ABCXJS.write.Printer.prototype.notifyChange = function (abselem) {
-  for (var i=0; i<this.listeners.length;i++) {
-    this.listeners[i].modelChanged();
-  }
-};
-
-ABCXJS.write.Printer.prototype.clearSelection = function () {
-  for (var i=0;i<this.selected.length;i++) {
-    this.selected[i].unhighlight();
-  }
-  this.selected = [];
+ABCXJS.write.Printer.prototype.printBassFingering = function(x, staveInfo, msg) {
+    var y = this.calcY(staveInfo.highest+1.5);
+    try {
+        this.paper.printSymbol(x-3, y, 'cn.'+msg.trim());
+    } catch(e){
+        this.paper.text(x, y+12, msg.trim(), 'abc_bassfingers', 'start');        
+    }
 };
 
 ABCXJS.write.Printer.prototype.addSelectListener = function (listener) {
   this.listeners[this.listeners.length] = listener;
 };
 
-ABCXJS.write.Printer.prototype.rangeHighlight = function(start,end)
-{
+//// notify all listeners que o modelo mudou
+//ABCXJS.write.Printer.prototype.notifyChange = function () {
+//  for (var i=0; i<this.listeners.length;i++) {
+//    this.listeners[i].modelChanged && this.listeners[i].modelChanged();
+//  }
+//};
+
+// notify all listeners that a graphical element has been selected
+ABCXJS.write.Printer.prototype.notifySelect = function (abselem, keepState) {
+  this.selected[this.selected.length]=abselem;
+  abselem.highlight(keepState);
+  for (var i=0; i<this.listeners.length;i++) {
+    this.listeners[i].highlight && this.listeners[i].highlight(abselem.abcelem);
+  }
+};
+
+// notify all listeners that a graphical element has been deselected
+ABCXJS.write.Printer.prototype.notifyClear = function (abselem) {
+  abselem.unhighlight();
+  for (var i=0; i<this.listeners.length;i++) {
+    this.listeners[i].unhighlight && this.listeners[i].unhighlight(abselem.abcelem);
+  }
+};
+
+// notify all listeners that a graphical element has been selected (should clear any previous selection)
+ABCXJS.write.Printer.prototype.notifyClearNSelect = function (abselem, keepState) {
+  this.clearSelection();
+  this.notifySelect(abselem,keepState);
+};
+
+ABCXJS.write.Printer.prototype.clearSelection = function () {
+  for (var i=0;i<this.selected.length;i++) {
+    this.notifyClear( this.selected[i] );
+  }
+  this.selected = [];
+};
+
+ABCXJS.write.Printer.prototype.rangeHighlight = function(sel) {
+    
     this.clearSelection();
+    
+    if( sel.length === 1 && sel[0].start.row === sel[0].end.row && sel[0].start.column === sel[0].end.column ) {
+        return;
+    }
+    
     for (var line=0;line<this.staffgroups.length; line++) {
 	var voices = this.staffgroups[line].voices;
 	for (var voice=0;voice<voices.length;voice++) {
 	    var elems = voices[voice].children;
 	    for (var elem=0; elem<elems.length; elem++) {
-		// Since the user can highlight more than an element, or part of an element, a hit is if any of the endpoints
-		// is inside the other range.
-		var elStart = elems[elem].abcelem.startChar;
-		var elEnd = elems[elem].abcelem.endChar;
-		if ((end>elStart && start<elEnd) || ((end===start) && end===elEnd)) {
-		    //		if (elems[elem].abcelem.startChar>=start && elems[elem].abcelem.endChar<=end) {
-		    this.selected[this.selected.length]=elems[elem];
-		    elems[elem].highlight();
-		}
+		// Elementos estão confinados somente em uma linha
+                if(! elems[elem].abcelem.position ) continue;
+                var elLine = elems[elem].abcelem.position.anchor.line;
+		var elStart = elems[elem].abcelem.position.anchor.ch;
+		var elEnd = elems[elem].abcelem.position.head.ch;
+                for(var s = 0; s < sel.length; s ++) {
+                    try {
+                        if( elLine >= sel[s].start.row && elLine <= sel[s].end.row ) {
+
+                            if (  ( elLine === sel[s].start.row && elEnd < sel[s].start.column ) ||
+                                  ( elLine === sel[s].end.row && elStart > sel[s].end.column   ) ) {
+                                continue; //elemento fora do range
+                            } else {
+                                this.selected.push(elems[elem]);
+                                elems[elem].highlight();
+                                break;
+                            }
+                        }
+                    } catch(e) {
+                        
+                    }
+                }
 	    }
 	}
     }
@@ -542,17 +599,18 @@ ABCXJS.write.Printer.prototype.calcY = function(ofs) {
 };
 
 ABCXJS.write.Printer.prototype.calcPageLength = function() {
-    this.estimatedPageLength = ((this.maxwidth+this.paddingright)*this.pageratio - this.paddingbottom)/this.scale;
+    if( this.currentTune.formatting.papersize === 'screen' ) 
+        this.estimatedPageLength =  1e6; // no page breaks
+    else
+        this.estimatedPageLength = ((this.maxwidth+this.paddingright)*this.pageratio - this.paddingbottom)/this.scale;
 };
 
 ABCXJS.write.Printer.prototype.printPageNumber = function() {
-    //return; // vamos usar page format
     
     this.y = this.estimatedPageLength;
     
     if (this.pagenumbering) {
          this.paper.text(this.maxwidth+this.paddingright, this.y, "- " + this.pageNumber + " -", 'abc_tempo', 'end');
-             // .attr({"text-anchor": "end", "font-size": 13 , "font-family": "serif", 'font-weight': 'bold'});
     }
 };
 
@@ -562,9 +620,11 @@ ABCXJS.write.Printer.prototype.skipPage = function(lastPage) {
     if( ! lastPage || this.pageNumber > 1) {
         this.printPageNumber();
     }
+    
     this.totalY += this.y;
     
     this.paper.endPage({w: (this.maxwidth + this.paddingright) , h: this.y });
+    
     if( ! lastPage ) {
         this.y = this.paddingtop;
         this.pageNumber++;
@@ -572,26 +632,14 @@ ABCXJS.write.Printer.prototype.skipPage = function(lastPage) {
     }
 };
 
-ABCXJS.write.Printer.prototype.formatPage = function(tune) {
+ABCXJS.write.Printer.prototype.formatPage = function() {
     //prepara a página para impressão de acordo com os parâmetros da canção.
-    var orientation = tune.formatting.landscape?'landscape':'portrait';
+    var orientation = this.currentTune.formatting.landscape?'landscape':'portrait';
     var style = document.getElementById('page_format');
     
-//    var pgnumber = '';
-//
-//    if ( tune.formatting.pagenumbering ) {
-//        pgnumber = 
-//'   @page: right {\n\
-//        @bottom-right {\n\
-//            content: "Pág. " counter(page) "/" counter(pages)".";\n\
-//            }\n\
-//    }\n';
-//        
-//    }
-
     var formato = 
 '   @page {\n\
-        margin: '+tune.formatting.defaultMargin+'; size: '+tune.formatting.papersize+' ' + orientation + ';\n\
+        margin: '+this.currentTune.formatting.defaultMargin+'; size: '+this.currentTune.formatting.papersize+' ' + orientation + ';\n\
     }\n' ; //+ pgnumber;
     
     if( ! style ) {
@@ -606,14 +654,11 @@ ABCXJS.write.Printer.prototype.formatPage = function(tune) {
 
 ABCXJS.write.Printer.prototype.printExtraText = function(text, x) {
     var t = this.paper.text(x, this.y , text, 'abc_title', 'start');
-            //.attr({"text-anchor": "start", "font-family": "serif", "font-size": 17 });
     var height ;//= t.getBBox().height;
-    if (!height)  height = 25 ; // TODO-PER: Hack! Raphael sometimes and returns NaN. Perhaps only when printing to PDF? Possibly if the SVG is hidden?
-    //t.translate(0, height / 2);
+    if (!height)  height = 25 ; //fixme: obter a altura do texto
     return height;
 };
 
 ABCXJS.write.Printer.prototype.printSubtitleLine = function(subtitle) {
-    this.paper.text(this.width/2, this.y, subtitle, 'abc_subtitle', 'middle');
+    this.paper.text(this.width/2, this.y+2, subtitle, 'abc_subtitle', 'middle');
 };
-

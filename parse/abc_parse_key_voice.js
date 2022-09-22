@@ -329,7 +329,7 @@ window.ABCXJS.parse.parseKeyVoice = {};
 		}
 	};
 
-	window.ABCXJS.parse.parseKeyVoice.parseKey = function( str, transposer, line, lineNumber )	
+	window.ABCXJS.parse.parseKeyVoice.parseKey = function( str, transposer, line, lineNumber )
 	{
 		// returns:
 		//		{ foundClef: true, foundKey: true }
@@ -596,6 +596,7 @@ window.ABCXJS.parse.parseKeyVoice = {};
 
 	var setCurrentVoice = function(id) {
 		multilineVars.currentVoice = multilineVars.voices[id];
+                //multilineVars.clef = multilineVars.currentVoice.clef;
 		tune.setCurrentVoice(multilineVars.currentVoice.staffNum, multilineVars.currentVoice.index);
 	};
 
@@ -614,11 +615,15 @@ window.ABCXJS.parse.parseKeyVoice = {};
 		}
 		var isNew = false;
 		if (multilineVars.voices[id] === undefined) {
-			multilineVars.voices[id] = {};
-			isNew = true;
-			if (multilineVars.score_is_present && id.toLowerCase().substr(0,3) !== "tab")
-				warn("Can't have an unknown V: id when the %score directive is present", line, start);
-		}
+                    multilineVars.voices[id] = {currBarNumber:1};
+                    isNew = true;
+                    if (multilineVars.score_is_present && id.toLowerCase().substr(0,3) !== "tab")
+                            warn("Can't have an unknown V: id when the %score directive is present", line, start);
+                }
+//		} else {
+//                    //multilineVars.clef = multilineVars.staves[ multilineVars.voices[id].staffNum].clef;
+//                    multilineVars.clef = multilineVars.voices[id].clef;
+//                }
 		start += id.length;
 		start += tokenizer.eatWhiteSpace(line, start);
 
@@ -674,6 +679,9 @@ window.ABCXJS.parse.parseKeyVoice = {};
                                                     }
                                                     staffInfo.verticalPos = calcMiddle(staffInfo.clef, oct);
                                                     multilineVars.clef = {type: staffInfo.clef, verticalPos: staffInfo.verticalPos};
+                                                    multilineVars.voices[id].clef = {type: staffInfo.clef, verticalPos: staffInfo.verticalPos};
+                                                    //multilineVars.currentVoice.clef = multilineVars.voices[id].clef; 
+                                                    
 						}
 						break;
                                         case 'accordionTab':
@@ -707,6 +715,7 @@ window.ABCXJS.parse.parseKeyVoice = {};
 						staffInfo.clef = token.token.replace(/[',]/g, ""); //'//comment for emacs formatting of regexp
 						staffInfo.verticalPos = calcMiddle(staffInfo.clef, oct2);
                                                 multilineVars.clef = {type: staffInfo.clef, verticalPos: staffInfo.verticalPos};
+                                                multilineVars.voices[id].clef = multilineVars.clef; 
 						break;
 					case 'staves':
 					case 'stave':

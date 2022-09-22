@@ -30,6 +30,54 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
 
     this.tieCnt = 1;
     this.slurCnt = 1;
+    
+    var legalAccents = 
+    [
+        "trill", "lowermordent", "uppermordent", "mordent", "pralltriller", "accent",
+        "fermata", "invertedfermata", "tenuto", "0", "1", "2", "3", "4", "5", "+", "wedge",
+        "open", "thumb", "snap", "turn", "roll", "breath", "shortphrase", "mediumphrase", "longphrase",
+        "segno", "coda", "fine", "dacapo", "dasegno", "dacoda", "dcalfine", "dcalcoda", "dsalfine", "dsalcoda",
+        "crescendo(", "crescendo)", "diminuendo(", "diminuendo)",
+        "p", "pp", "f", "ff", "mf", "mp", "ppp", "pppp", "fff", "ffff", "sfz", "repeatbar", "repeatbar2", "slide",
+        "upbow", "downbow", "/", "//", "///", "////", "trem1", "trem2", "trem3", "trem4",
+        "turnx", "invertedturn", "invertedturnx", "trill(", "trill)", "arpeggio", "xstem", "mark", "umarcato",
+        "style=normal", "style=harmonic", "style=rhythm", "style=x"
+    ];
+    
+    var accentPsuedonyms = [
+        ["D.C.", "dacapo"], ["D.S.", "dasegno"],
+        ["<", "accent"],[">", "accent"], ["tr", "trill"], 
+        ["<(", "crescendo("], ["<)", "crescendo)"],
+        [">(", "diminuendo("], [">)", "diminuendo)"], 
+        ["plus", "+"], ["emphasis", "accent"]
+    ];
+    
+//   segno    - barra anterior - em cima - ponto de retorno
+//   coda     - barra anterior - em cima - ponto de retorno
+//   
+//   fine     - barra posterior - em cima - ponto de parada
+//   dacoda   - barra posterior - em cima - salta ao coda (se existir e flag dacoda)
+//   dasegno  - barra posterior - em cima - salta ao segno (se existir) - flag dasegno  
+//   dacapo   - barra posterior - em cima - volta ao começo - flag dacapo
+//   
+//   dcalfine - barra anterior - em baixo - ao final do compasso volta ao começo - flag fine
+//   dcalcoda - barra anterior - em baixo - ao final do compasso volta ao começo - flag dacoda
+//   dsalfine - barra anterior - em baixo - ao final do compasso volta ao ponto de retorno (se existir) - flag fine
+//   dsalcoda - barra anterior - em baixo - ao final do compasso volta ao ponto de retorno (se existir) - flag dacoda
+
+    var jumpMarkers  = {
+         segno:    {decorationNextBar:false, jumpNextBar: false, upper:true  } // desenhado na barra prévia,  efetivo na barra prévia
+        ,coda:     {decorationNextBar:true,  jumpNextBar: true,  upper:true  } // desenhado na próxima barra, efetivo na próxima barra
+        ,fine:     {decorationNextBar:true,  jumpNextBar: true,  upper:true  } // desenhado na próxima barra, efetivo na próxima barra
+        ,dacoda:   {decorationNextBar:true,  jumpNextBar: true,  upper:true  } // desenhado na próxima barra, efetivo na próxima barra
+        ,dacapo:   {decorationNextBar:true,  jumpNextBar: true,  upper:true  } // desenhado na próxima barra, efetivo na próxima barra
+        ,dasegno:  {decorationNextBar:true,  jumpNextBar: true,  upper:true  } // desenhado na próxima barra, efetivo na próxima barra
+        ,dcalfine: {decorationNextBar:false, jumpNextBar: true,  upper:false } // desenhado após a barra, efetivo na próxima barra.
+        ,dcalcoda: {decorationNextBar:false, jumpNextBar: true,  upper:false } // desenhado após a barra, efetivo na próxima barra.
+        ,dsalfine: {decorationNextBar:false, jumpNextBar: true,  upper:false } // desenhado após a barra, efetivo na próxima barra.
+        ,dsalcoda: {decorationNextBar:false, jumpNextBar: true,  upper:false } // desenhado após a barra, efetivo na próxima barra.
+    };
+    
 
     if (transposer_)
         this.transposer = transposer_;
@@ -37,9 +85,9 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
     if (accordion_)
         this.accordion = accordion_;
 
-    var tune = new window.ABCXJS.data.Tune();
-    var tokenizer = new window.ABCXJS.parse.tokenizer();
-
+    var tune;
+    var tokenizer;
+    var header;
     var strTune = '';
 
     this.getTune = function() {
@@ -73,22 +121,15 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
             this.voices = {};
             this.staves = [];
             this.macros = {};
-            this.currBarNumber = 1;
+            //this.currBarNumber = 1;
+            //this.currTabBarNumber = 1;
             this.inTextBlock = false;
             this.inPsBlock = false;
             this.ignoredDecorations = [];
             this.textBlock = "";
             this.score_is_present = false;	// Can't have original V: lines when there is the score directive
-/*
+            this.currentVoice = undefined ; // { index:0, staffNum:0, currBarNumber: 1}; 
 
-Estas variávies foram modificadas de tal forma que existe um controle para voz diferente na partitura.
-Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_directive
-            
-            this.inEnding = false;
-            this.inTie = false;
-            this.inTieChord = {};
-
- */
         }
     };
 
@@ -126,9 +167,42 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
     this.addTuneElement = function(type, startOfLine, xi, xf, elem, line) {
         switch(type) {
             case 'bar':
-                multilineVars.barAccidentals = [];                        
+                multilineVars.measureNotEmpty = false;
+                
+                if(multilineVars.addJumpPointNextBar) {
+                    elem.jumpPoint = ABCXJS.parse.clone( multilineVars.addJumpPointNextBar );
+                    delete multilineVars.addJumpPointNextBar;
+                }
+                if(multilineVars.addJumpInfoNextBar) {
+                    elem.jumpInfo = ABCXJS.parse.clone( multilineVars.addJumpInfoNextBar );
+                    delete multilineVars.addJumpInfoNextBar;
+                }
+                if(multilineVars.addJumpDecorationNextBar) {
+                    elem.jumpDecoration = ABCXJS.parse.clone( multilineVars.addJumpDecorationNextBar );
+                    delete multilineVars.addJumpDecorationNextBar;
+                }
+                
+                //restart bar accidentals
+                multilineVars.barAccidentals = [];  
+                
+                //records the last bar elem
+                multilineVars.lastBarElem = elem;
                 break;
             case 'note':
+                multilineVars.measureNotEmpty = true;
+                
+                // coloca informação de numeracao na previa barra de compasso, já que o compasso não está vazio 
+                if (multilineVars.barNumOnNextNote ) {
+                    var mc = multilineVars.currentVoice; 
+                    if(multilineVars.lastBarElem) {
+                        multilineVars.lastBarElem.barNumber = multilineVars.barNumOnNextNote;
+                        multilineVars.lastBarElem.barNumberVisible = ( multilineVars.barNumOnNextNoteVisible && ( mc === undefined || (mc.staffNum === 0 && mc.index === 0 )));
+                    }
+                    
+                    multilineVars.barNumOnNextNote = null;
+                    multilineVars.barNumOnNextNoteVisible = null;
+                }
+               
                 if( elem.pitches )  {
                     elem.pitches.forEach( function( p ) { 
                         if(p.accidental === undefined && multilineVars.barAccidentals[p.pitch]!==undefined ) {
@@ -138,14 +212,17 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 }
                 break;
         }
-
-        this.handleTie( elem, line, xi );
-        this.handleSlur( elem, line, xi );
-        tune.appendElement(type, multilineVars.currTexLineNum, startOfLine + xi, startOfLine + xf, elem);
+        try {
+            this.handleTie( elem );
+            this.handleSlur( elem, line, xi );
+            tune.appendElement(type, multilineVars.currTexLineNum, xi, xf, elem, multilineVars.currentVoice); // flavio -startOfLine
+        } catch(e) {
+             warn("Unknown character ignored", line, xi);
+        }
     };
     
 
-    this.handleTie = function(elem, line, i ) {
+    this.handleTie = function(elem) {
         var self = this;
         if( ! elem.pitches ) return;
         if( this.anyTieEnd(elem) )  {
@@ -156,7 +233,13 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                     if(elem.pitches) { 
                         elem.pitches.forEach( function( pitch ) { 
                             if(self.equalsPitch( pitch, startPitch )  ) {
-                                startPitch.tie = { id_start: tieCnt };
+                                
+                                if(! startPitch.tie) {
+                                    startPitch.tie = {};
+                                }
+                                // para ligaduras encadeadas ja existira obj tie
+                                startPitch.tie.id_start = tieCnt;
+                                
                                 pitch.tie =  { id_end: tieCnt };
                                 tieCnt ++;
                             }
@@ -232,7 +315,7 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
     };
     
     this.equalsPitch = function(p1, p2) {
-        var p1acc='noacc', p2acc = 'noacc';
+        var p1acc='natural', p2acc = 'natural';
         if( p1.accidental !== undefined ) {
             p1acc= p1.accidental;
         } else if ( p1.barAccidental !== undefined ) {
@@ -281,8 +364,6 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         return found;
     };
     
-    var header = new window.ABCXJS.parse.ParseHeader(tokenizer, warn, multilineVars, tune, this.transposer);
-
     var letter_to_chord = function(line, i)
     {
         if (line.charAt(i) === '"')
@@ -324,8 +405,9 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 chord[2] = null;
                 chord[3] = {x: x.value, y: y.value};
             } else {
-                chord[1] = chord[1].replace(/([ABCDEFG])b/g, "$1♭");
-                chord[1] = chord[1].replace(/([ABCDEFG])#/g, "$1♯");
+                //chord[1] = chord[1].replace(/([ABCDEFG])b/g, "$1?");
+                //chord[1] = chord[1].replace(/([ABCDEFG])#/g, "$1?");
+                chord[1] = ABCXJS.parse.normalizeAcc(chord[1]);
                 chord[2] = 'default';
             }
             return chord;
@@ -333,17 +415,6 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         return [0, ""];
     };
 
-    var legalAccents = ["trill", "lowermordent", "uppermordent", "mordent", "pralltriller", "accent",
-        "fermata", "invertedfermata", "tenuto", "0", "1", "2", "3", "4", "5", "+", "wedge",
-        "open", "thumb", "snap", "turn", "roll", "breath", "shortphrase", "mediumphrase", "longphrase",
-        "segno", "coda", "D.S.", "D.C.", "fine", "crescendo(", "crescendo)", "diminuendo(", "diminuendo)",
-        "p", "pp", "f", "ff", "mf", "mp", "ppp", "pppp", "fff", "ffff", "sfz", "repeatbar", "repeatbar2", "slide",
-        "upbow", "downbow", "/", "//", "///", "////", "trem1", "trem2", "trem3", "trem4",
-        "turnx", "invertedturn", "invertedturnx", "trill(", "trill)", "arpeggio", "xstem", "mark", "umarcato",
-        "style=normal", "style=harmonic", "style=rhythm", "style=x"
-    ];
-    var accentPsuedonyms = [["<", "accent"], [">", "accent"], ["tr", "trill"], ["<(", "crescendo("], ["<)", "crescendo)"],
-        [">(", "diminuendo("], [">)", "diminuendo)"], ["plus", "+"], ["emphasis", "accent"]];
     var letter_to_accent = function(line, i)
     {
         var macro = multilineVars.macros[line.charAt(i)];
@@ -375,33 +446,6 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 return [1, 'downbow'];
             case '~':
                 return [1, 'irishroll'];
-            case '!':
-            case '+':
-                var ret = tokenizer.getBrackettedSubstring(line, i, 5);
-                // Be sure that the accent is recognizable.
-                if (ret[1].length > 0 && (ret[1].charAt(0) === '^' || ret[1].charAt(0) === '_'))
-                    ret[1] = ret[1].substring(1);	// TODO-PER: The test files have indicators forcing the ornament to the top or bottom, but that isn't in the standard. We'll just ignore them.
-                if (window.ABCXJS.parse.detect(legalAccents, function(acc) {
-                    return (ret[1] === acc);
-                }))
-                    return ret;
-
-                if (window.ABCXJS.parse.detect(accentPsuedonyms, function(acc) {
-                    if (ret[1] === acc[0]) {
-                        ret[1] = acc[1];
-                        return true;
-                    } else
-                        return false;
-                }))
-                    return ret;
-
-                // We didn't find the accent in the list, so consume the space, but don't return an accent.
-                // Although it is possible that ! was used as a line break, so accept that.
-                if (line.charAt(i) === '!' && (ret[0] === 1 || line.charAt(i + ret[0] - 1) !== '!'))
-                    return [1, null];
-                warn("Unknown decoration: " + ret[1], line, i);
-                ret[1] = "";
-                return ret;
             case 'H':
                 return [1, 'fermata'];
             case 'J':
@@ -420,6 +464,35 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 return [1, 'segno'];
             case 'T':
                 return [1, 'trill'];
+            case '!':
+            case '+':
+               var ret = tokenizer.getBrackettedSubstring(line, i, 5);
+                // Be sure that the accent is recognizable.
+                if (ret[1].length > 0 && (ret[1].charAt(0) === '^' || ret[1].charAt(0) === '_'))
+                    ret[1] = ret[1].substring(1);	// TODO-PER: The test files have indicators forcing the ornament to the top or bottom, but that isn't in the standard. We'll just ignore them.
+                
+                if (window.ABCXJS.parse.detect(legalAccents, function(acc) {
+                    return (ret[1] === acc);
+                }))
+                    return ret;
+
+                if (window.ABCXJS.parse.detect(accentPsuedonyms, function(acc) {
+                    if (ret[1] === acc[0]) {
+                        ret[1] = acc[1];
+                        return true;
+                    } else
+                        return false;
+                }))
+                    return ret;
+
+                // We didn't find the accent in the list, so consume the space, but don't return an accent.
+                // Although it is possible that ! was used as a line break, so accept that.
+                if (line.charAt(i) === '!' && (ret[0] === 1 /* flavio || line.charAt(i + ret[0] - 1) !== '!') */ ) )
+                    return [1, null];
+                
+                warn("Unknown decoration: " + ret[1], line, i);
+                ret[1] = "";
+                return ret;
         }
         return [0, 0];
     };
@@ -461,13 +534,13 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         // It can also be a quoted string. It is unclear whether that construct requires '[', but it seems like it would. otherwise it would be confused with a regular chord.
         if (line.charAt(curr_pos + ret.len) === '"' && line.charAt(curr_pos + ret.len - 1) === '[') {
             var ending = tokenizer.getBrackettedSubstring(line, curr_pos + ret.len, 5);
-            return [ret.len + ending[0], ret.token, ending[1]];
+            return [ret.len + ending[0], ret.token, ret.repeat, ending[1]];
         }
         var retRep = tokenizer.getTokenOf(line.substring(curr_pos + ret.len), "1234567890-,");
         if (retRep.len === 0 || retRep.token[0] === '-')
-            return [orig_bar_len, ret.token];
+            return [orig_bar_len, ret.token, ret.repeat];
 
-        return [ret.len + retRep.len, ret.token, retRep.token];
+        return [ret.len + retRep.len, ret.token, ret.repeat, retRep.token];
     };
 
     var letter_to_open_slurs_and_triplets = function(line, i) {
@@ -521,21 +594,34 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         return ret;
     };
 
-    var addWords = function(staff, line, words) {
-        if (!line) {
-            warn("Can't add words before the first line of music", line, 0);
-            return;
-        }
+    var addWords = function(staff, line, words, fingers, bassfingers) {
+//        este bloco parece não fazer sentido        
+//        if (!line) {
+//            warn("Can't add words before the first line of music", words, 0);
+//            return;
+//        }
         words = window.ABCXJS.parse.strip(words);
         if (words.charAt(words.length - 1) !== '-')
             words = words + ' ';	// Just makes it easier to parse below, since every word has a divider after it.
         var word_list = [];
-        staff.lyricsRows++;
+
+        if(!(fingers || bassfingers))
+            staff.lyricsRows++;
+
         // first make a list of words from the string we are passed. A word is divided on either a space or dash.
         var last_divider = 0;
         var replace = false;
         var addWord = function(i) {
             var word = window.ABCXJS.parse.strip(words.substring(last_divider, i));
+            
+            if (fingers && word.trim() !== "" && ".1.2.3.4.5.23.24.25.34.35.45.234.235.245.345.2345.*.".indexOf("."+word.trim()+".") < 0 ) {
+                warn( "Alien fingering detected", words, i-word.trim().length );
+            }
+
+            if (bassfingers && word.trim() !== "" && ".1.2.3.4.5.23.24.25.34.35.45.234.235.245.345.2345.*.".indexOf("."+word.trim()+".") < 0 ) {
+                warn( "Alien bass-fingering detected", words, i-word.trim().length );
+            }
+            
             last_divider = i + 1;
             if (word.length > 0) {
                 if (replace)
@@ -566,8 +652,13 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                     word_list.push({skip: true, to: 'slur'});
                     break;
                 case '*':
-                    addWord(i);
-                    word_list.push({skip: true, to: 'next'});
+                    if(!(fingers || bassfingers)) {
+                        addWord(i);
+                        word_list.push({skip: true, to: 'next'});
+                    } else {
+                        addWord(i);
+                        word_list.push({syllable: '*', divider: ' ' });
+                    }
                     break;
                 case '|':
                     addWord(i);
@@ -599,11 +690,24 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                     }
                 } else {
                     if (el.el_type === 'note' && el.rest === undefined && !inSlur) {
-                        var lyric = word_list.shift();
-                        if (el.lyric === undefined)
-                            el.lyric = [lyric];
-                        else
-                            el.lyric.push(lyric);
+                        var word = word_list.shift();
+                        if( bassfingers ){
+                            if (el.bassfingering === undefined)
+                                el.bassfingering = [word];
+                            else
+                                el.bassfingering.push(word);
+                        } else if( fingers ) {
+                            if (el.fingering === undefined)
+                                el.fingering = [word];
+                            else
+                                el.fingering.push(word);
+                        } else {
+                            if (el.lyric === undefined)
+                                el.lyric = [word];
+                            else
+                                el.lyric.push(word);
+                            
+                        }
                     }
                 }
             }
@@ -718,8 +822,9 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
     };
 
     // TODO-PER: make this a method in el.
+    // Flavio - 0.25 inclusive.
     var addEndBeam = function(el) {
-        if (el.duration !== undefined && el.duration < 0.25)
+        if (el.duration !== undefined && el.duration <= 0.25)
             el.end_beam = true;
         return el;
     };
@@ -1013,11 +1118,13 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         var params = {startChar: -1, endChar: -1};
         if (multilineVars.partForNextLine.length)
             params.part = multilineVars.partForNextLine;
-        params.clef = multilineVars.currentVoice && multilineVars.staves[multilineVars.currentVoice.staffNum].clef !== undefined ? window.ABCXJS.parse.clone(multilineVars.staves[multilineVars.currentVoice.staffNum].clef) : window.ABCXJS.parse.clone(multilineVars.clef);
+        
+        var mc = multilineVars.currentVoice;
+        
+        params.clef = window.ABCXJS.parse.clone( mc && mc.clef !== undefined ? mc.clef : multilineVars.clef);
+        
         params.key = window.ABCXJS.parse.parseKeyVoice.deepCopyKey(multilineVars.key);
-        if(params.clef.type === 'accordionTab' ) {
-            params.restsInTab = multilineVars.restsintab;
-        }
+        
         window.ABCXJS.parse.parseKeyVoice.addPosToKey(params.clef, params.key);
         if (multilineVars.meter !== null) {
             if (multilineVars.currentVoice) {
@@ -1069,15 +1176,34 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
 
         multilineVars.partForNextLine = "";
         var mc = multilineVars.currentVoice;
-        if (mc === undefined || (multilineVars.start_new_line && mc.staffNum === 0 ) ){
-            //multilineVars.meter = null;
-            if ( multilineVars.measureNotEmpty ) multilineVars.currBarNumber++;
-            multilineVars.barNumOnNextNote = multilineVars.currBarNumber;
+        if( mc ) {
+            if ( multilineVars.measureNotEmpty ) mc.currBarNumber++;
+            multilineVars.barNumOnNextNote = mc.currBarNumber;
             
-            if (multilineVars.barNumbers === 1 || ( multilineVars.barNumbers === 0 && multilineVars.currBarNumber > 1 ))
+            if (multilineVars.barNumbers === 1 || ( multilineVars.barNumbers === 0 && multilineVars.barsperstaff === undefined && mc.currBarNumber > 1 ))
                 multilineVars.barNumOnNextNoteVisible = true;
         }
     }
+    
+    var handleTriplet = function ( el, parsingTriplet ) {
+        var m = 0;
+        
+        if( el.pitches ) {
+            for(var ii=0; ii < el.pitches.length; ++ii ) m += el.pitches[ii].pitch;
+            parsingTriplet.triplet.avgPitch += (m/el.pitches.length);
+        } else {
+            parsingTriplet.triplet.avgPitch += 6.0;
+        }
+        
+        parsingTriplet.notesLeft--;
+        
+        if (parsingTriplet.notesLeft === 0) {
+            el.endTriplet = true;
+            parsingTriplet.triplet.avgPitch = (parsingTriplet.triplet.avgPitch/parsingTriplet.triplet.notes);
+            parsingTriplet.triplet = false;
+        }
+    };
+    
 
     var letter_to_grace = function(line, i) {
         // Grace notes are an array of: startslur, note, endslur, space; where note is accidental, pitch, duration
@@ -1192,15 +1318,80 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
     // back-tick, space, tab: space
     var nonDecorations = "ABCDEFGabcdefgxyzZ[]|^_{";	// use this to prescreen so we don't have to look for a decoration at every note.
 
+    this.handleJump = function (name, jump, line, i) {
+        if( jump.decorationNextBar ) {
+            if( ! multilineVars.addJumpDecorationNextBar ) {
+                multilineVars.addJumpDecorationNextBar = [];
+            }
+            multilineVars.addJumpDecorationNextBar.push({ type: name, upper: jump.upper });
+        } else {
+            if( multilineVars.lastBarElem ) {
+                if( ! multilineVars.lastBarElem.jumpDecoration ) {
+                    multilineVars.lastBarElem.jumpDecoration = [];
+                }
+                multilineVars.lastBarElem.jumpDecoration.push( { type: name, upper: jump.upper } ) ;
+            } else {
+                warn("Ignoring jump decoration marker before the first bar.", line, i);
+            }
+        }
+        
+        if( ('.segno.coda.fine.').indexOf(name) > 0 ) {
+            if( jump.jumpNextBar ) {
+                if( multilineVars.addJumpPointNextBar ) {
+                    warn("Overriding previous jump point", line, i);
+                }
+                multilineVars.addJumpPointNextBar = { type: name };
+            } else {
+                if( multilineVars.lastBarElem ) {
+                    if( multilineVars.lastBarElem.jumpPoint ) {
+                        warn("Overriding previous jump point", line, i);
+                    }
+                    multilineVars.lastBarElem.jumpPoint = { type: name };
+                } else {
+                    warn("Ignoring jump point marker before the first bar.", line, i);
+                }
+            }
+        } else {
+            if( jump.jumpNextBar ) {
+                if( multilineVars.addJumpInfoNextBar ) {
+                    warn("Overriding previous jump information", line, i);
+                }
+                multilineVars.addJumpInfoNextBar = { type: name };
+            } else {
+                if( multilineVars.lastBarElem ) {
+                    if( multilineVars.lastBarElem.jumpInfo ) {
+                        warn("Overriding previous jump information", line, i);
+                    }
+                    multilineVars.lastBarElem.jumpInfo = { type: name };
+                } else {
+                    warn("Ignoring jump info marker before the first bar.", line, i);
+                }
+            }
+        }
+    };
+    
     this.parseRegularMusicLine = function(line) {
+        
+        if( ! multilineVars.voices[0] ) {
+            // se nenhuma voz foi declarada, força uma voz zero 
+            if(!multilineVars.clef) {
+                multilineVars.clef = {type:'treble', verticalPos:0};
+            }
+            multilineVars.voices[0] = {clef: multilineVars.clef, index:0, staffNum:0, currBarNumber:1 };
+            multilineVars.staves[0] = {clef: multilineVars.clef, index:0, meter: null, numVoices:1, inTie:[false], inTieChord:[false], inEnding:[false] };
+            multilineVars.currentVoice = multilineVars.voices[0];
+            
+        }
         
         multilineVars.barAccidentals = [];
         
         header.resolveTempo();
-        //multilineVars.havent_set_length = false;	// To late to set this now.
+        
         multilineVars.is_in_header = false;	// We should have gotten a key header by now, but just in case, this is definitely out of the header.
+
         var i = 0;
         var startOfLine = multilineVars.iChar;
+        
         // see if there is nothing but a comment on this line. If so, just ignore it. A full line comment is optional white space followed by %
         while (tokenizer.isWhiteSpace(line.charAt(i)) && i < line.length)
             i++;
@@ -1209,18 +1400,11 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
 
         // Start with the standard staff, clef and key symbols on each line
         var delayStartNewLine = multilineVars.start_new_line;
-//			if (multilineVars.start_new_line) {
-//				startNewLine();
-//			}
-        if (multilineVars.continueall === undefined)
-            multilineVars.start_new_line = true;
-        else
-            multilineVars.start_new_line = false;
-        var tripletNotesLeft = 0;
-        //var tripletMultiplier = 0;
-//		var inTie = false;
-//		var inTieChord = {};
-
+        
+        multilineVars.start_new_line = (multilineVars.continueall === undefined);
+        
+        var parsingTriplet = { notesLeft:0, triplet: false };
+        
         // See if the line starts with a header field
         var retHeader = header.letter_to_body_header(line, i);
         if (retHeader[0] > 0) {
@@ -1238,22 +1422,20 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
             var retInlineHeader = header.letter_to_inline_header(line, i);
             if (retInlineHeader[0] > 0) {
                 i += retInlineHeader[0];
-                // TODO-PER: Handle inline headers
-                //multilineVars.start_new_line = false;
             } else {
                 // Wait until here to actually start the line because we know we're past the inline statements.
                 if (delayStartNewLine) {
                     startNewLine();
                     delayStartNewLine = false;
                 }
-//					var el = { };
 
                 // We need to decide if the following characters are a bar-marking or a note-group.
                 // Unfortunately, that is ambiguous. Both can contain chord symbols and decorations.
                 // If there is a grace note either before or after the chord symbols and decorations, then it is definitely a note-group.
                 // If there is a bar marker, it is definitely a bar-marking.
                 // If there is either a core-note or chord, it is definitely a note-group.
-                // So, loop while we find grace-notes, chords-symbols, or decorations. [It is an error to have more than one grace-note group in a row; the others can be multiple]
+                // So, loop while we find grace-notes, chords-symbols, or decorations. 
+                // [It is an error to have more than one grace-note group in a row; the others can be multiple]
                 // Then, if there is a grace-note, we know where to go.
                 // Else see if we have a chord, core-note, slur, triplet, or bar.
 
@@ -1315,9 +1497,14 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                                 if (i + 1 < line.length)
                                     startNewLine();	// There was a ! in the middle of the line. Start a new line if there is anything after it.
                             } else if (ret[1].length > 0) {
-                                if (el.decoration === undefined)
-                                    el.decoration = [];
-                                el.decoration.push(ret[1]);
+                                var jump = jumpMarkers[ ret[1] ];
+                                if( jump ) {
+                                    this.handleJump(ret[1], jump, line, i ); 
+                                } else {
+                                    if (el.decoration === undefined)
+                                        el.decoration = [];
+                                    el.decoration.push(ret[1]);
+                                }
                             }
                             i += ret[0];
                         } else {
@@ -1340,10 +1527,9 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                         el.rest = {type: 'spacer'};
                         el.duration = 0.125; // TODO-PER: I don't think the duration of this matters much, but figure out if it does.
                         this.addTuneElement('note', startOfLine, i, i + ret[0], el);
-                        multilineVars.measureNotEmpty = true;
                         el = {};
                     }
-                    var bar = {type: ret[1]};
+                    var bar = {type: ret[1], repeat: ret[2]};
                     if (bar.type.length === 0)
                         warn("Unknown bar type", line, i);
                     else {
@@ -1354,8 +1540,8 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                                 multilineVars.staves[multilineVars.currentVoice.staffNum].inEnding[multilineVars.currentVoice.index] = false;
                             }
                         }
-                        if (ret[2]) {
-                            bar.startEnding = ret[2];
+                        if (ret[3]) {
+                            bar.startEnding = ret[3];
                             if (multilineVars.staves[multilineVars.currentVoice.staffNum].inEnding[multilineVars.currentVoice.index]) {
                                 bar.endDrawEnding = true;
                                 bar.endEnding = true;
@@ -1369,14 +1555,18 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                         var mc = multilineVars.currentVoice; 
                         if (bar.type !== 'bar_invisible' 
                                 && multilineVars.measureNotEmpty 
-                                && ( mc === undefined || ( mc.staffNum === 0 && mc.index === 0) ) ) {
-                            multilineVars.currBarNumber++;
-                            multilineVars.barNumOnNextNote = multilineVars.currBarNumber;
-                            if (multilineVars.barNumbers && multilineVars.currBarNumber % multilineVars.barNumbers === 0)
+                                /*&& ( mc === undefined || ( mc.staffNum === 0 && mc.index === 0) )*/ ) {
+                            mc.currBarNumber++;
+                            multilineVars.barNumOnNextNote = mc.currBarNumber;
+                            if 
+                            (
+                                (multilineVars.barNumbers && (mc.currBarNumber % multilineVars.barNumbers === 0))
+                            || 
+                                (multilineVars.barsperstaff !== undefined && mc.currBarNumber && ((mc.currBarNumber-1) % multilineVars.barsperstaff) === 0) 
+                            ) 
                                 multilineVars.barNumOnNextNoteVisible = true;
                         }
                         this.addTuneElement('bar', startOfLine, i, i + ret[0], bar);
-                        multilineVars.measureNotEmpty = false;
                         el = {};
                     }
                     i += ret[0];
@@ -1393,11 +1583,12 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                         if (ret.startSlur !== undefined) 
                             el.startSlur = ret.startSlur;
                         if (ret.triplet !== undefined) {
-                            if (tripletNotesLeft > 0)
+                            if (parsingTriplet.notesLeft > 0)
                                 warn("Can't nest triplets", line, i);
                             else {
-                                el.startTriplet = ret.triplet;
-                                tripletNotesLeft = ret.num_notes === undefined ? ret.triplet : ret.num_notes;
+                                parsingTriplet.notesLeft = ret.num_notes === undefined ? ret.triplet : ret.num_notes;
+                                parsingTriplet.triplet = {num: ret.triplet, notes: parsingTriplet.notesLeft, avgPitch: 0};
+                                el.startTriplet = parsingTriplet.triplet;
                             }
                         }
                         i += ret.consumed;
@@ -1460,11 +1651,8 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                                         multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index] = false;
                                     }
 
-                                    if (tripletNotesLeft > 0) {
-                                        tripletNotesLeft--;
-                                        if (tripletNotesLeft === 0) {
-                                            el.endTriplet = true;
-                                        }
+                                    if (parsingTriplet.notesLeft > 0) {
+                                        handleTriplet( el, parsingTriplet );
                                     }
 
                                     var postChordDone = false;
@@ -1509,9 +1697,12 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                                                 var fraction = tokenizer.getFraction(line, i);
                                                 chordDuration = fraction.value;
                                                 i = fraction.index;
-                                                if (line.charAt(i) === '-' || line.charAt(i) === ')')
+                                                // flavio - garantindo que o final do acorde seja bem tratado
+                                                if( line.charAt(i).match(/[-\s\)]/g) )
                                                     i--; // Subtracting one because one is automatically added below
-                                                else
+                                                //if (line.charAt(i) === '-' || line.charAt(i) === ')')
+                                                //    i--; // Subtracting one because one is automatically added below
+                                                 else 
                                                     postChordDone = true;
                                                 break;
                                             default:
@@ -1528,19 +1719,11 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                                 if (el.pitches !== undefined) {
                                     if (chordDuration !== null) {
                                         el.duration = el.duration * chordDuration;
-//											window.ABCXJS.parse.each(el.pitches, function(p) {
-//												p.duration = p.duration * chordDuration;
-//											});
-                                    }
-                                    if (multilineVars.barNumOnNextNote ) {
-                                        var mc = multilineVars.currentVoice; 
-                                        el.barNumber = multilineVars.barNumOnNextNote;
-                                        el.barNumberVisible = ( multilineVars.barNumOnNextNoteVisible && ( mc === undefined || (mc.staffNum === 0 && mc.index === 0 )));
-                                        multilineVars.barNumOnNextNote = null;
-                                        multilineVars.barNumOnNextNoteVisible = null;
+                                        //window.ABCXJS.parse.each(el.pitches, function(p) {
+                                        //    p.duration = p.duration * chordDuration;
+                                        //});
                                     }
                                     this.addTuneElement('note', startOfLine, startI, i, el);
-                                    multilineVars.measureNotEmpty = true;
                                     el = {};
                                 }
                                 done = true;
@@ -1551,7 +1734,7 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                         // Single pitch
                         var el2 = {};
                         var core = getCoreNote(line, i, el2, true);
-                        if (el2.endTie !== undefined)
+                        if (el2.endTie !== undefined) 
                             multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index] = true;
                         if (core !== null) {
                             if (core.pitch !== undefined) {
@@ -1598,36 +1781,27 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                             if (core.graceNotes !== undefined)
                                 el.graceNotes = core.graceNotes;
                             delete el.startSlur;
-                            if (multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index]) {
-                                if (el.pitches !== undefined)
-                                    el.pitches[0].endTie = true;
-                                else
-                                    el.rest.endTie = true;
-                                multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index] = false;
-                            }
-                            if (core.startTie || el.startTie)
-                                multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index] = true;
+                            if(multilineVars.staves.length){
+                                if (multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index]) {
+                                    if (el.pitches !== undefined)
+                                        el.pitches[0].endTie = true;
+                                    else
+                                        el.rest.endTie = true;
+                                    multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index] = false;
+                                }
+                                if (core.startTie || el.startTie)
+                                    multilineVars.staves[multilineVars.currentVoice.staffNum].inTie[multilineVars.currentVoice.index] = true;
+                            }    
                             i = core.endChar;
 
-                            if (tripletNotesLeft > 0) {
-                                tripletNotesLeft--;
-                                if (tripletNotesLeft === 0) {
-                                    el.endTriplet = true;
-                                }
+                            if (parsingTriplet.notesLeft > 0) {
+                                handleTriplet( el, parsingTriplet );
                             }
-
+                            
                             if (core.end_beam)
                                 addEndBeam(el);
 
-                            if (multilineVars.barNumOnNextNote) {
-                                var mc = multilineVars.currentVoice; 
-                                el.barNumber = multilineVars.barNumOnNextNote;
-                                el.barNumberVisible = ( multilineVars.barNumOnNextNoteVisible && ( mc === undefined || (mc.staffNum === 0 && mc.index === 0 )));
-                                multilineVars.barNumOnNextNote = null;
-                                multilineVars.barNumOnNextNoteVisible = null;
-                            }
                             this.addTuneElement('note', startOfLine, startI, i, el, line);
-                            multilineVars.measureNotEmpty = true;
                             el = {};
                         }
                     }
@@ -1646,8 +1820,9 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
     this.parseLine = function(line, lineNumber) {
         var ret = header.parseHeader(line, lineNumber);
         if (ret.regular) {
-            if (multilineVars.clef.type === "accordionTab") {
-                var startOfLine = this.getMultilineVars().iChar;
+            // TODO: verificar porque no parabens crioulo a voz v3 nao tem clef definida
+            if (multilineVars.clef && multilineVars.clef.type === "accordionTab") {
+                //var startOfLine = this.getMultilineVars().iChar;
                 if (this.accordion) {
                     if( this.transposer && this.transposer.offSet !== 0) {
                         this.transposer.deleteTabLine(lineNumber);
@@ -1655,9 +1830,8 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                         var voice = this.accordion.parseTabVoice(ret.str, this.getMultilineVars(), this.getTune());
                         if (voice.length > 0) {
                             startNewLine();
-                            tune.restsInTab = multilineVars.restsintab || false;
                             for (var i = 0; i < voice.length; i++) {
-                                tune.appendElement(voice[i].el_type, multilineVars.currTexLineNum, startOfLine + voice[i].startChar, startOfLine + voice[i].endChar, voice[i]);
+                                tune.appendElement(voice[i].el_type, multilineVars.currTexLineNum, voice[i].startChar, voice[i].endChar, voice[i], multilineVars.currentVoice); // flavio - startOfline
                             }
                         }
                     }
@@ -1666,15 +1840,19 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 }
             } else {
                 if (this.transposer && this.transposer.offSet !== 0) {
-                    ret.str = this.transposer.transposeRegularMusicLine(line, lineNumber);
+                    ret.str = this.transposer.transposeRegularMusicLine(line, lineNumber, multilineVars);
                 }
                 this.parseRegularMusicLine(ret.str);
             }
         }
         if (ret.newline && multilineVars.continueall === undefined)
             startNewLine();
+        if (ret.bassfingering)
+            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), false, true);
+        if (ret.fingering)
+            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), true, false);
         if (ret.words)
-        addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2));
+            addWords(tune.getCurrentStaff(), tune.getCurrentVoice(), line.substring(2), false, false);
         if (ret.symbols)
             addSymbols(tune.getCurrentVoice(), line.substring(2));
         if (ret.recurse)
@@ -1685,28 +1863,34 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         // Take care of whatever line endings come our way
         strTune = window.ABCXJS.parse.gsub(strTune, '\r\n', '\n');
         strTune = window.ABCXJS.parse.gsub(strTune, '\r', '\n');
-        strTune += '\n';	// Tacked on temporarily to make the last line continuation work
+        strTune += strTune.charAt(strTune.length-1) === '\n' ? '' : '\n';
         strTune = strTune.replace(/\n\\.*\n/g, "\n");	// get rid of latex commands.
+        
         var continuationReplacement = function(all, backslash, comment) {
             var spaces = "                                                                                                                                                                                                     ";
             var padding = comment ? spaces.substring(0, comment.length) : "";
             return backslash + " \x12" + padding;
         };
+        
         strTune = strTune.replace(/\\([ \t]*)(%.*)*\n/g, continuationReplacement);	// take care of line continuations right away, but keep the same number of characters
         var lines = strTune.split('\n');
-        if (window.ABCXJS.parse.last(lines).length === 0)	// remove the blank line we added above.
+        
+        while( window.ABCXJS.parse.last(lines).length === 0 )	// remove the blank lines at the end.
             lines.pop();
+        
         return lines;
+
     };
     
-    this.appendString = function(newLines) {
-        //retira \n ao final  
-        var t = strTune;
-        while( t.charAt(t.length-1) === '\n' ) {
-            t = t.substr(0,t.length-1);
-        }
-        return t + newLines;
-    };
+//    this.joinStrings = function(original, newLines) {
+//        while( original.charAt(original.length-1) === '\n' ) {
+//            original = original.substr(0,original.length-1);
+//        }
+//        while( newLines.charAt(newLines.length-1) === '\n' ) {
+//            newLines = newLines.substr(0,newLines.length-1);
+//        }
+//        return original + newLines + '\n';
+//    };
     
 
     this.parse = function(tuneTxt, switches) {
@@ -1715,15 +1899,22 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
         // switches.stop_on_warning : stop at the first warning encountered.
         // switches.print: format for the page instead of the browser.
         //window.ABCXJS.parse.transpose = transpose;
+        
         strTune = tuneTxt;
-        tune.reset();
+        
+        tune = new window.ABCXJS.data.Tune();
+        tokenizer = new window.ABCXJS.parse.tokenizer();
+        header = new window.ABCXJS.parse.ParseHeader(tokenizer, warn, multilineVars, tune, this.transposer);
+
+        //tune.reset();
+        
         if (switches && switches.print)
             tune.media = 'print';
         multilineVars.reset();
         header.reset(tokenizer, warn, multilineVars, tune);
 
         var lines = this.strTuneHouseKeeping();
-        //try {
+        try {
             for (var lineNumber = 0; lineNumber < lines.length; lineNumber++) {
                 multilineVars.currTexLineNum = lineNumber;
                 var line = lines[lineNumber];
@@ -1762,13 +1953,8 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 multilineVars.iChar += line.length + 1;
             }
             
-            tune.setFormat(multilineVars);
-            
-            tune.handleBarsPerStaff();
-
-            tune.cleanUp();
-            
             if( this.transposer && this.transposer.offSet !== 0 ) {
+                // substitui strTune com os valores transpostos
                 strTune = this.transposer.updateEditor( lines );
             }
             
@@ -1777,7 +1963,7 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                 if (tune.lines[0].staffs[tune.tabStaffPos].voices[0].length === 0) {
                     // para a tablatura de accordion, sempre se esperam 3 vozes (staffs): uma para melodia, uma para o baixo e a terceira para a tablatura
                     // opcionalmente, a linha de baixo, não precisa existir
-                    (tune.tabStaffPos === 0) && addWarning("+Warn: Accordion Tablature should not be the first staff!");
+                    (tune.tabStaffPos === 0) && addWarning("AccordionTab não deve ser a primeira voz!");
                     for (var t = 1; t < tune.lines.length; t++) {
                         //se for necessário inferir a tablatura, garante que todas as linhas tenham uma staff apropriada
                         if (tune.lines[t].staffs && !tune.lines[t].staffs[tune.tabStaffPos]) {
@@ -1787,38 +1973,50 @@ Elas foram incluídas em this.staves - ver:  abc_parse_key_voice e abc_parse_dir
                         }
                     }
                     if (this.accordion) {
-                        multilineVars.closing = true;
-                        multilineVars.missingButtons = {};
-                        for (var t = 0; t < tune.lines.length; t++) {
-                           if (tune.lines[t].staffs ) {
-                              var voice = this.accordion.inferTabVoice(t, tune, multilineVars);
-                              if (voice.length > 0) {
-                                  tune.lines[t].staffs[tune.tabStaffPos].voices[0] = voice;
-                                  tune.restsInTab = multilineVars.restsintab || false;
-                              }
-                           }  
-                        }
-                        if(multilineVars.missingButtons){
-                            for( var m in multilineVars.missingButtons ) {
-                                addWarning('Nota ' + m + ' não disponível nos compassos: ' + multilineVars.missingButtons[m].join(", ") + '.' ) ;
-                            }
-                        }
-                        delete multilineVars.closing;
-                        delete multilineVars.missingButtons;
+                        
+                        //inferir a nova tablatura
+                        this.accordion.inferTablature(tune, multilineVars, addWarning );
                         
                         // obtem possiveis linhas inferidas para tablatura
-                        strTune = this.appendString( this.accordion.updateEditor() );
+                        strTune += this.accordion.getTabLines();
                         
                     } else {
-                        addWarning("+Warn: Cannot infer tablature line: no accordion defined!");
+                        addWarning("Impossível inferir a tablatura: acordeon não definido!");
                     }
+                } else {
+                    // como parse da tablatura foi feito, incluir possiveis warnings
+                    if(multilineVars.InvalidBass) {
+                        addWarning("Baixo incompatível com movimento do fole no(s) compasso(s): "+ multilineVars.InvalidBass.substring(1,multilineVars.InvalidBass.length-1) +".");
+                        delete multilineVars.InvalidBass;
+                    } 
+                    if(multilineVars.missingNotes) {
+                        addWarning("Notas não encontradas no(s) compasso(s): "+ multilineVars.missingNotes.substring(1,multilineVars.missingNotes.length-1) +".");
+                        delete multilineVars.missingNotes;
+                    } 
+                    
                 }
             }
-    
+            if(switches.hideLyrics !== undefined){
+                multilineVars.hideLyrics = switches.hideLyrics
+            }
+            if(switches.hideFingering !== undefined){
+                multilineVars.hideFingering = switches.hideFingering
+            }
+            if(switches.ilheirasNumeradas !== undefined){
+                multilineVars.ilheirasNumeradas = switches.ilheirasNumeradas
+            }
             
-        //} catch (err) {
-        //    if (err !== "normal_abort")
-        //        throw err;
-        //}
+            tune.setFormat(multilineVars);
+            
+            tune.handleBarsPerStaff();
+            
+            tune.checkJumpMarkers(addWarning);
+
+            tune.cleanUp();
+            
+        } catch (err) {
+            if (err !== "normal_abort")
+                throw err;
+        }
     };
 };

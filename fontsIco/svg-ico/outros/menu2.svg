@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   style="enable-background:new 0 0 1000 1000;"
+   viewBox="0 0 1000 1000"
+   y="0px"
+   x="0px"
+   id="keyboard"
+   version="1.1">
+  <metadata
+     id="metadata9">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs7" />
+  <path
+     id="path2"
+     horiz-adv-x="1000"
+     d="m 860,240 q 42,0 73,-30 31,-30 31,-75 Q 964,93 934,62 904,31 860,31 H 130 q -44,0 -74,31 -30,31 -30,73 0,44 31,75 31,31 73,30 z m 0,364 q 44,0 74,-31 30,-31 30,-73 0,-42 -30,-73 -30,-31 -74,-30 H 130 q -44,0 -74,30 -30,30 -30,73 0,43 30,73 30,30 74,31 z m 0,365 q 44,0 74,-31 30,-31 30,-73 0,-43 -31,-74 -31,-31 -73,-31 H 130 q -43,0 -73,31 -30,31 -31,74 0,43 30,73 30,30 74,31 z" />
+</svg>

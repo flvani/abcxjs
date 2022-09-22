@@ -1,6 +1,7 @@
 ﻿{
    "id":"GAITA_HOHNER_GC"
   ,"model":"Hohner/Hëring"
+  ,"menuOrder" : 1
   ,"tuning":["G","C"]
   ,"buttons":["21","8"]
   ,"pedal":[2,5]

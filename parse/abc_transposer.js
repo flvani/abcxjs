@@ -15,12 +15,6 @@ if (!window.ABCXJS.parse)
 window.ABCXJS.parse.Transposer = function ( offSet ) {
     
     this.pitches           = ABCXJS.parse.pitches;
-    this.key2number        = ABCXJS.parse.key2number;
-    this.number2keyflat    = ABCXJS.parse.number2keyflat;
-    this.number2keysharp   = ABCXJS.parse.number2keysharp;
-    this.number2key_br     = ABCXJS.parse.number2key_br;
-    this.number2staff      = ABCXJS.parse.number2staff;
-    this.number2staffSharp = ABCXJS.parse.number2staffSharp;
     
     this.tokenizer         = new ABCXJS.parse.tokenizer();
     
@@ -44,9 +38,9 @@ window.ABCXJS.parse.Transposer.prototype.reset = function( offSet ) {
 window.ABCXJS.parse.Transposer.prototype.numberToStaff = function(number, newKacc) {
     var s ;
     if(newKacc.length > 0 && newKacc[0].acc === 'flat')
-        s = this.number2staff[number];
+        s = ABCXJS.parse.number2staff[number];
     else
-        s = this.number2staffSharp[number];
+        s = ABCXJS.parse.number2staffSharp[number];
     
     // octave can be altered below
     s.octVar = 0;
@@ -81,7 +75,7 @@ window.ABCXJS.parse.Transposer.prototype.numberToStaff = function(number, newKac
     return s;
 };
 
-window.ABCXJS.parse.Transposer.prototype.transposeRegularMusicLine = function(line, lineNumber) {
+window.ABCXJS.parse.Transposer.prototype.transposeRegularMusicLine = function(line, lineNumber, multilineVars) {
 
     var index = 0;
     var found = false;
@@ -96,6 +90,9 @@ window.ABCXJS.parse.Transposer.prototype.transposeRegularMusicLine = function(li
     var exclusionSyms = '"!+'; 
     
     this.workingLine = line;
+    this.vars = multilineVars;
+    this.isBass = (this.vars.currentVoice.clef.type==='bass') || false;
+    this.isChord = false;
     this.workingLineIdx = this.changedLines.length;
     this.changedLines[ this.workingLineIdx ] = { line:lineNumber, text: line };
     this.workingX = 0;
@@ -145,9 +142,17 @@ window.ABCXJS.parse.Transposer.prototype.transposeRegularMusicLine = function(li
             state = 0;
             
             if (found) {
-                this.transposeNote(xi, xf - xi);
+              this.transposeNote(xi, xf - xi);
             } else {
-              index++;
+                if( line.charAt(index) === '[' ) {
+                    index = this.checkForInlineFields( index );
+                } else {
+                    if(line.charAt(index) === ']' ) {
+                        this.isChord = false;
+                        delete this.lastPitch ;
+                    }
+                    index++;
+                }
             }   
             
         }
@@ -164,20 +169,57 @@ window.ABCXJS.parse.Transposer.prototype.transposeRegularMusicLine = function(li
     return this.changedLines[ this.workingLineIdx ].text;
 };
 
+window.ABCXJS.parse.Transposer.prototype.checkForInlineFields = function ( index ) {
+    var c = this.workingLine.substring(index);
+    var rex = c.match(/^\[([IKLMmNPQRrUV]\:.*?)\]/g);
+    var newidx = index;
+    if(rex) {
+        var key = rex[0].substr(1,rex[0].length-2).split(":");
+        switch(key[0]) {
+            case 'K': //Será que deveria me preocupar em colocar em cNewKey informação da armadura daqui para frente?
+               this.transposeChord(index+3,key[1].length);
+               newidx+=rex[0].length;
+               break;
+            case 'V':
+               this.updateVoiceInfo(key[1]);
+               newidx+=rex[0].length;
+               break;
+            default:
+               newidx+=rex[0].length;
+        }
+    } else {
+        this.isChord = 1;
+        newidx+=1;
+    }
+    return newidx;
+};
+
+window.ABCXJS.parse.Transposer.prototype.updateVoiceInfo = function ( id ) {
+    this.vars.currentVoice = this.vars.voices[id] ;
+    this.isBass = (this.vars.currentVoice.clef.type==='bass') || false;
+    
+};
+
 window.ABCXJS.parse.Transposer.prototype.transposeChord = function ( xi, size ) {
     
-    var c = this.workingLine.substring(xi,xi+size);
-    var rex = c.match(/[ABCDEFG][#b]*[°]*[0-9]*(\/*[0-9])*/g);
+    var c = this.denormalizeAcc(this.workingLine.substring(xi,xi+size));
+    var rex = c.match(/([ABCDEFG][#b]*[M+m°]*[0-9]*(\/[ABCDEFG0-9])*)/g);
     
     if( Math.abs(this.offSet)%12 === 0 || !rex || c!==rex[0]  ) return ;
     
-    var cKey = this.parseKey( c );
+    var newStr = c;
     
-    var newKey = this.keyToNumber( cKey );
-    var cNewKey = this.denormalizeAcc( this.numberToKey(newKey + this.offSet ));
+    rex = c.match(/([ABCDEFG].*(\/[ABCDEFG]).*)/g);
+    c = rex===null? [c] : c.split('/');
     
-    var newStr  = c.replace(cKey, cNewKey );
-   
+    for( var t = 0; t < c.length; t++) {
+        
+        var cKey = this.parseKey( c[t] );
+        var newKey = this.keyToNumber( cKey );
+        var cNewKey = this.denormalizeAcc( this.numberToKey(newKey + this.offSet, this.offSet ));
+
+        newStr  = newStr.replace(cKey, cNewKey );
+    }
     this.updateWorkingLine( newStr, xi, size/*, cNewKey.length*/ );
     //this.workingLine = this.workingLine.substr(0, xi) + cNewKey + this.workingLine.substr(xi+size);
 };
@@ -197,7 +239,7 @@ window.ABCXJS.parse.Transposer.prototype.transposeNote = function(xi, size )
         this.baraccidentals[pitch] = dAcc;
     }
 
-    var dKi = this.getKeyAccOffset(this.numberToKey(crom), this.oldKeyAcc);
+    var dKi = this.getKeyAccOffset(this.numberToKey(crom, this.offSet), this.oldKeyAcc);
 
     var newNote = 0;
     if (this.baraccidentals[pitch] !== undefined) {
@@ -211,8 +253,32 @@ window.ABCXJS.parse.Transposer.prototype.transposeNote = function(xi, size )
 
     var newStaff = this.numberToStaff(newNote, this.newKeyAcc);
     var dKf = this.getKeyAccOffset(newStaff.note, this.newKeyAcc);
+    
+    var deltaOctave = newOct + newStaff.octVar; 
+    
+    if( this.isBass ) {
+        if ( this.isChord && this.isChord > 1 ) {
+            var p = this.getPitch(newStaff.note, oct + deltaOctave );
 
-    pitch = this.getPitch(newStaff.note, oct + newOct + newStaff.octVar );
+            if( this.offset > 0 ) {
+                if( p < elem.pitch ) deltaOctave++;
+            } else {
+                if( p > elem.pitch ) deltaOctave--;
+            }
+            p = this.getPitch(newStaff.note, oct + deltaOctave );
+            if(p < this.lastPitch ){
+                // assumir que o acorde é cadastrado em ordem crescente e
+                // se ao final da conversão de uma nota do acorde, esta for menor que a prévia, somar uma oitava. 
+                deltaOctave++;
+            }
+        } else {
+            deltaOctave = 0;
+        }
+        this.isChord && this.isChord ++; 
+    }
+
+
+    this.lastPitch = pitch = this.getPitch(newStaff.note, oct + deltaOctave );
     dAcc = this.getAccOffset(newStaff.acc);
 
     var newElem = {};
@@ -238,7 +304,7 @@ window.ABCXJS.parse.Transposer.prototype.transposeNote = function(xi, size )
     }
 
     oct = this.extractStaffOctave(pitch);
-    var key = this.numberToKey(this.staffNoteToCromatic(this.extractStaffNote(pitch)));
+    var key = this.numberToKey(this.staffNoteToCromatic(this.extractStaffNote(pitch)), this.offSet);
     txtAcc = newElem.accidental;
     abcNote = this.getAbcNote(key, txtAcc, oct);
     this.updateWorkingLine( abcNote, xi, size/*, abcNote.length */);
@@ -276,7 +342,7 @@ window.ABCXJS.parse.Transposer.prototype.transposeKey = function ( str, line, li
     if( Math.abs(this.offSet)%12 === 0 || ! cKey ) return this.tokenizer.tokenize(str, 0, str.length);
     
     var newKey = this.keyToNumber( cKey );
-    var cNewKey = this.denormalizeAcc( this.numberToKey(newKey + this.offSet ));
+    var cNewKey = this.denormalizeAcc( this.numberToKey(newKey + this.offSet, this.offSet ));
     
     this.currKey[this.currKey.length-1] = cNewKey;
 
@@ -285,8 +351,8 @@ window.ABCXJS.parse.Transposer.prototype.transposeKey = function ( str, line, li
     
     this.changedLines[ this.changedLines.length ] = { line:lineNumber, text: newLine };
 
-    this.oldKeyAcc = ABCXJS.parse.parseKeyVoice.standardKey(this.denormalizeAcc(cKey));
-    this.newKeyAcc = ABCXJS.parse.parseKeyVoice.standardKey(this.denormalizeAcc(cNewKey));
+    this.oldKeyAcc = ABCXJS.parse.parseKeyVoice.standardKey(this.denormalizeAcc(str));
+    this.newKeyAcc = ABCXJS.parse.parseKeyVoice.standardKey(this.denormalizeAcc(newStr));
     
     return this.tokenizer.tokenize(newStr, 0, newStr.length);
 };
@@ -321,6 +387,7 @@ window.ABCXJS.parse.Transposer.prototype.deleteTabLine = function ( n ) {
 };
 
 window.ABCXJS.parse.Transposer.prototype.updateEditor = function ( lines ) {
+    
     for( i = 0; i < this.changedLines.length; i++ ){
         lines[this.changedLines[i].line] = this.changedLines[i].text;
     }
@@ -334,7 +401,7 @@ window.ABCXJS.parse.Transposer.prototype.updateEditor = function ( lines ) {
     }
     this.deletedLines = [];
     this.changedLines = [];
-    return newStr;
+    return newStr+'\n';
 };
 
 window.ABCXJS.parse.Transposer.prototype.getKeyVoice = function ( idx ) {
@@ -386,15 +453,23 @@ window.ABCXJS.parse.Transposer.prototype.extractStaffOctave = function(pitch) {
     return Math.floor((28 + pitch) / 7);
 };
 
-window.ABCXJS.parse.Transposer.prototype.numberToKey = function(number) {
-    number %= this.number2keyflat.length;
-    if( number < 0 ) number += this.number2keyflat.length;
-    return this.number2keyflat[number];
+window.ABCXJS.parse.Transposer.prototype.numberToKey = function(number, offset) {
+    var r = number;
+    r %= ABCXJS.parse.number2keysharp.length;
+    
+    if( r < 0 ) r += ABCXJS.parse.number2keysharp.length;
+    
+    if( offset > 0 ) {
+        r = ABCXJS.parse.number2keysharp[r];
+    } else {
+        r = ABCXJS.parse.number2keyflat[r];
+    }
+    return r;
 };
 
 window.ABCXJS.parse.Transposer.prototype.keyToNumber = function(key) {
     key = this.normalizeAcc(key);
-    return this.key2number[key];
+    return ABCXJS.parse.key2number[key];
 };
 
 window.ABCXJS.parse.Transposer.prototype.getAccOffset = function(txtAcc)

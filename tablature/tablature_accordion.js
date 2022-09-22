@@ -10,18 +10,22 @@ if (!window.ABCXJS)
 if (!window.ABCXJS.tablature)
 	window.ABCXJS.tablature = {};
 
-ABCXJS.tablature.Accordion = function( params ) {
+ABCXJS.tablature.Accordion = function( params, pautaNumerica, pautaNumericaMini ) {
     
-    this.transposer   = new window.ABCXJS.parse.Transposer();
-    this.selected     = -1;
-    this.tabLines     = [];
-    this.accordions   = params.accordionMaps || [] ;
+    this.loaded        = undefined;
+    this.tabLines      = [];
+    this.accordions    = params.accordionMaps || [] ;
+    this.translator    = params.translator || null;
+    this.transposer    = new window.ABCXJS.parse.Transposer();
+    this.pautaNumerica = pautaNumerica || 0;
+    this.pautaNumericaMini = pautaNumericaMini || (pautaNumericaMini===undefined);
     
     if( this.accordions.length === 0 ) {
         throw new Error( 'No accordionMap found!');
     }
     
-    this.render_keyboard_opts = params.render_keyboard_opts || {transpose:false, mirror: false, scale:1, draggable:false, show:false, label:false};
+    this.render_opts = {};
+    this.setRenderOptions( params.render_keyboard_opts, true );
 
     if( params.id )
         this.loadById( params.id );
@@ -30,19 +34,42 @@ ABCXJS.tablature.Accordion = function( params ) {
     
 };
 
+ABCXJS.tablature.Accordion.prototype.setRenderOptions = function ( options, initial ) {
+    
+    var opt = options || {};
+
+    this.render_opts.transpose = (typeof opt.transpose === 'undefined'? (initial? false : this.render_opts.transpose ): opt.transpose) ;
+    this.render_opts.mirror = (typeof opt.mirror === 'undefined'? (initial? false : this.render_opts.mirror ): opt.mirror) ;
+    this.render_opts.draggable = (typeof opt.draggable === 'undefined'? (initial? false : this.render_opts.draggable ): opt.draggable) ;
+    this.render_opts.show = (typeof opt.show === 'undefined'? (initial? false : this.render_opts.show ): opt.show) ;
+    this.render_opts.label = (typeof opt.label === 'undefined'? (initial? false : this.render_opts.label ): opt.label) ;
+    
+    this.render_opts.scale = (typeof opt.scale === 'undefined'? (initial? 1 : this.render_opts.scale ): opt.scale) ;
+    
+    if( ! initial ) {
+        DIATONIC.map.color.fill = (typeof opt.fillColor === 'undefined'? DIATONIC.map.color.fill : opt.fillColor) ;
+        DIATONIC.map.color.background = (typeof opt.backgroundColor === 'undefined'? DIATONIC.map.color.background : opt.backgroundColor) ;
+        DIATONIC.map.color.open = (typeof opt.openColor === 'undefined'? DIATONIC.map.color.open : opt.openColor) ;
+        DIATONIC.map.color.close = (typeof opt.closeColor === 'undefined'? DIATONIC.map.color.close : opt.closeColor) ;
+    }    
+};
+
+
 ABCXJS.tablature.Accordion.prototype.loadById = function (id) {
     for (var g = 0; g < this.accordions.length; g ++)
         if (this.accordions[g].id === id) {
             return this.load(g);
-            
         }
-    console.log( 'Accordion not found. Loading the first one.');
-    return this.load(0);
+        waterbug.log( 'Accordion not found. Loading the first one.');
+        return this.load(0);
 };
 
 ABCXJS.tablature.Accordion.prototype.load = function (sel) {
-    this.selected = sel;
-    return this.accordions[this.selected];
+    this.loaded = this.accordions[sel];
+    this.loadedKeyboard = this.loaded.keyboard;
+    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,this.pautaNumericaMini)
+
+    return this.loaded;
 };
 
 ABCXJS.tablature.Accordion.prototype.accordionExists = function(id) {
@@ -54,94 +81,81 @@ ABCXJS.tablature.Accordion.prototype.accordionExists = function(id) {
 };
 
 ABCXJS.tablature.Accordion.prototype.accordionIsCurrent = function(id) {
-    var ret = false;
-    for(var a = 0; a < this.accordions.length; a++ ) {
-        if( this.accordions[a].id === id && this.selected === a) ret  = true;
-    }
-    return ret;
+    return (this.accordions.loaded && this.accordions.loaded.id === id);
 };
 
 ABCXJS.tablature.Accordion.prototype.clearKeyboard = function(full) {
-    this.accordions[this.selected].keyboard.clear(full);
+    this.loadedKeyboard.clear(full);
 };
 
 ABCXJS.tablature.Accordion.prototype.changeNotation = function() {
-    this.render_keyboard_opts.label = ! this.render_keyboard_opts.label;
-    this.redrawKeyboard();
+    this.render_opts.label = ! this.render_opts.label;
+    this.loadedKeyboard.redraw(this.render_opts);
 };
 
-ABCXJS.tablature.Accordion.prototype.redrawKeyboard = function() {
-    this.getKeyboard().redraw(this.render_keyboard_opts);
-};
-
-ABCXJS.tablature.Accordion.prototype.rotateKeyboard = function(div) {
-    var o = this.render_keyboard_opts;
+ABCXJS.tablature.Accordion.prototype.rotateKeyboard = function(div_id) {
+    var o = this.render_opts;
     
     if( o.transpose ) {
         o.mirror=!o.mirror;
     }
+    
     o.transpose=!o.transpose;
     
-    this.printKeyboard(div);
+    this.printKeyboard(div_id);
 };
 
-ABCXJS.tablature.Accordion.prototype.scaleKeyboard = function(div) {
-    if( this.render_keyboard_opts.scale < 1.2 ) {
-        this.render_keyboard_opts.scale += 0.2;
+ABCXJS.tablature.Accordion.prototype.scaleKeyboard = function(div_id) {
+    if( this.render_opts.scale < 1.2 ) {
+        this.render_opts.scale += 0.2;
     } else {
-        this.render_keyboard_opts.scale = 0.8;
+        this.render_opts.scale = 0.8;
     }
-    this.printKeyboard(div);
-};
-
-ABCXJS.tablature.Accordion.prototype.layoutKeyboard = function(options, div) {
-    if(options.transpose!==undefined)
-        this.render_keyboard_opts.transpose = options.transpose;
-    if(options.mirror!==undefined)
-        this.render_keyboard_opts.mirror = options.mirror;
-    this.printKeyboard(div);
+    this.printKeyboard(div_id);
 };
 
 ABCXJS.tablature.Accordion.prototype.printKeyboard = function(div_id, options) {
     
+    this.setRenderOptions( options );
+    
     var div =( typeof(div_id) === "string" ? document.getElementById(div_id) : div_id );
 
-    options = options || {};
-    
-    this.render_keyboard_opts.fillColor = options.fillColor || this.render_keyboard_opts.fillColor;
-    this.render_keyboard_opts.backgroundColor = options.backgroundColor || this.render_keyboard_opts.backgroundColor;
-    this.render_keyboard_opts.openColor = options.openColor || this.render_keyboard_opts.openColor;
-    this.render_keyboard_opts.closeColor = options.closeColor || this.render_keyboard_opts.closeColor;
-    
-
-    if( this.render_keyboard_opts.show ) {
+    if( this.render_opts.show ) {
         div.style.display="inline-block";
-        this.getKeyboard().print(div, this.render_keyboard_opts);
+        this.loadedKeyboard.print(div,this.render_opts, this.translator);
     } else {
         div.style.display="none";
     }
 };
-        
-ABCXJS.tablature.Accordion.prototype.getKeyboard = function () {
-    return this.accordions[this.selected].keyboard;
+
+ABCXJS.tablature.Accordion.prototype.getFormatoTab = function () {
+    return this.pautaNumerica;
 };
 
+ABCXJS.tablature.Accordion.prototype.setFormatoTab = function (val,mini) {
+    this.pautaNumerica = val;
+    this.pautaNumericaMini = mini
+    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,mini)
+};
+
+ABCXJS.tablature.Accordion.prototype.getId = function () {
+    return this.loaded.getId();
+}
 ABCXJS.tablature.Accordion.prototype.getFullName = function () {
-    return this.accordions[this.selected].getFullName();
+    return this.loaded.getFullName();
 };
 
 ABCXJS.tablature.Accordion.prototype.getTxtModel = function () {
-    return this.accordions[this.selected].getTxtModel();
+    return this.loaded.getTxtModel();
 };
 
 ABCXJS.tablature.Accordion.prototype.getTxtNumButtons = function () {
-    return this.accordions[this.selected].getTxtNumButtons();
+    return this.loaded.getTxtNumButtons();
 };
 
 ABCXJS.tablature.Accordion.prototype.getTxtTuning = function () {
-    return this.accordions[this.selected].getTxtTuning();
+    return this.loaded.getTxtTuning();
 };
-
 
 ABCXJS.tablature.Accordion.prototype.getNoteName = function( item, keyAcc, barAcc, bass ) {
     
@@ -172,17 +186,43 @@ ABCXJS.tablature.Accordion.prototype.getNoteName = function( item, keyAcc, barAc
     
     if (item.chord) key = key.toLowerCase();    
     
-    return { key: key, octave:oitava, isBass:bass, isChord: item.chord, value:value };
+    return { key: key, octave:oitava, isBass:bass, isChord: item.chord, isMinor: item.minor, value:value };
 };
 
-//TODO: resolver isso para que não tenha que instanciar uma vez para cada linha de texto
-ABCXJS.tablature.Accordion.prototype.inferTabVoice = function( line, tune, vars ) {
-    var i = new ABCXJS.tablature.Infer( this, tune, vars );
-    return i.inferTabVoice( line );
+ABCXJS.tablature.Accordion.prototype.inferTablature = function(tune, vars, addWarning ) {
+
+    var inferer = new ABCXJS.tablature.Infer( this, tune, vars );
+    
+    vars.missingButtons = {};
+    vars.invalidBasses = '';
+    
+    for (var t = 0; t < tune.lines.length; t++) {
+       if (tune.lines[t].staffs ) {
+          var voice = inferer.inferTabVoice( t );
+          if (voice.length > 0) {
+              tune.lines[t].staffs[tune.tabStaffPos].voices[0] = voice;
+          }
+       }  
+    }
+    
+    if(vars.invalidBasses.length > 0){
+        addWarning('Baixo incompatível com o movimento do fole no(s) compasso(s): ' + vars.invalidBasses.substring(1,vars.invalidBasses.length-1) + '.' ) ;
+    }
+    
+    if(vars.missingButtons){
+        for( var m in vars.missingButtons ) {
+            addWarning('Nota "' + m + '" não disponível no(s) compasso(s): ' + vars.missingButtons[m].join(", ") + '.' ) ;
+        }
+    }
+    
+    delete vars.missingButtons;
+    delete vars.invalidBasses;
+   
+    
 };
 
 ABCXJS.tablature.Accordion.prototype.parseTabVoice = function(str, vars ) {
-    var p = new ABCXJS.tablature.Parse(str, vars);
+    var p = new ABCXJS.tablature.Parse( this,  str, vars);
     return p.parseTabVoice();
 };
 
@@ -190,9 +230,9 @@ ABCXJS.tablature.Accordion.prototype.setTabLine = function (line) {
     this.tabLines[this.tabLines.length] = line.trim();
 };
 
-ABCXJS.tablature.Accordion.prototype.updateEditor = function () {
-    var ret = "\n";
-    if(this.tabLines.length === 0) return "";
+ABCXJS.tablature.Accordion.prototype.getTabLines = function () {
+    var ret = "";
+    if(this.tabLines.length === 0) return ret;
     for(var l = 0; l < this.tabLines.length; l ++ ) {
         if(this.tabLines[l].length>0){
             ret += this.tabLines[l]+"\n";

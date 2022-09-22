@@ -166,7 +166,20 @@ window.ABCXJS.parse.tokenizer = function() {
 
 	// This returns one of the legal bar lines
 	// This is called alot and there is no obvious tokenable items, so this is broken apart.
-	this.getBarLine = function(line, i) {
+    this.getBarLine = function(line, i ){
+		//var bn = this.getBarLine_original(line, i);
+		var bn = ABCXJS.parse.getBarLine(line, i);  
+
+		// originalmente não havia informação sobre quantidade de repeticoes
+		if( ! bn.repeat ) {
+           bn.repeat = 1;
+		}
+
+		return bn;
+
+	}
+/*
+	this.getBarLine_original = function(line, i) {
 		switch (line.charAt(i)) {
 			case ']':
 				++i;
@@ -246,6 +259,7 @@ window.ABCXJS.parse.tokenizer = function() {
 		}
 		return {len: 0};
 	};
+*/
 
 	// this returns all the characters in the string that match one of the characters in the legalChars string
 	this.getTokenOf = function(str, legalChars) {
@@ -729,26 +743,45 @@ window.ABCXJS.parse.tokenizer = function() {
 	};
 	this.getBrackettedSubstring = function(line, i, maxErrorChars, _matchChar)
 	{
-		// This extracts the sub string by looking at the first character and searching for that
-		// character later in the line (or search for the optional _matchChar).
-		// For instance, if the first character is a quote it will look for
-		// the end quote. If the end of the line is reached, then only up to the default number
-		// of characters are returned, so that a missing end quote won't eat up the entire line.
-		// It returns the substring and the number of characters consumed.
-		// The number of characters consumed is normally two more than the size of the substring,
-		// but in the error case it might not be.
-		var matchChar = _matchChar || line.charAt(i);
-		var pos = i+1;
-		while ((pos < line.length) && (line.charAt(pos) !== matchChar))
-			++pos;
-		if (line.charAt(pos) === matchChar)
-			return [pos-i+1,substInChord(line.substring(i+1, pos)), true];
-		else	// we hit the end of line, so we'll just pick an arbitrary num of chars so the line doesn't disappear.
-		{
-			pos = i+maxErrorChars;
-			if (pos > line.length-1)
-				pos = line.length-1;
-			return [pos-i+1, substInChord(line.substring(i+1, pos)), false];
-		}
+            // This extracts the sub string by looking at the first character and searching for that
+            // character later in the line (or search for the optional _matchChar).
+            // For instance, if the first character is a quote it will look for
+            // the end quote. If the end of the line is reached, then only up to the default number
+            // of characters are returned, so that a missing end quote won't eat up the entire line.
+            // It returns the substring and the number of characters consumed.
+            // The number of characters consumed is normally two more than the size of the substring,
+            // but in the error case it might not be.
+            var matchChar = _matchChar || line.charAt(i);
+            var nextPos = line.substr( i+1 ).indexOf(matchChar);
+            if( nextPos === -1) {
+                if( line.charAt( i+1 ) ===  ' ' ) // entendido como break line
+                    return  [1, "", false, 0];
+                else {
+                    // procura o primeiro espaço em branco após matchChar
+                    var nextPos = line.substr( i+1 ).indexOf(' ');
+                    if( nextPos === -1) {
+                        // we hit the end of line, so we'll just pick an arbitrary num of chars so the line doesn't disappear.
+			nextPos = i+maxErrorChars>line.length-1?line.length-1:i+maxErrorChars;
+			return [nextPos-i+1, substInChord(line.substring(i+1, nextPos)), false];
+                    }
+                }
+                
+            }
+            
+            var str = line.substr(i+1, nextPos ).split(":");
+            return [nextPos+2, str[0], true, str[1]===undefined?0:str[1] ];
+
+//		var pos = i+1;
+//		while ((pos < line.length) && (line.charAt(pos) !== matchChar))
+//			++pos;
+//		if (line.charAt(pos) === matchChar)
+//			return [pos-i+1,substInChord(line.substring(i+1, pos)), true];
+//		else	// we hit the end of line, so we'll just pick an arbitrary num of chars so the line doesn't disappear.
+//		{
+//			pos = i+maxErrorChars;
+//			if (pos > line.length-1)
+//				pos = line.length-1;
+//			return [pos-i+1, substInChord(line.substring(i+1, pos)), false];
+//		}
 	};
 };

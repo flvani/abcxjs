@@ -31,7 +31,7 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 
 	this.setTitle = function(title) {
 		if (multilineVars.hasMainTitle) {
-                  multilineVars.subtitle = tokenizer.translateString(tokenizer.stripComment(title))
+                  multilineVars.subtitle = tokenizer.translateString(tokenizer.stripComment(title));
 		  tune.addSubtitle(multilineVars.subtitle);	// display secondary title
                 } else {
 		  tune.addMetaText("title", tokenizer.translateString(tokenizer.theReverser(tokenizer.stripComment(title))));
@@ -153,11 +153,11 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 	};
 
 	this.resolveTempo = function() {
-		if (multilineVars.tempo) {	// If there's a tempo waiting to be resolved
-			this.calcTempo(multilineVars.tempo);
-			tune.metaText.tempo = multilineVars.tempo;
-			delete multilineVars.tempo;
-		}
+            if (multilineVars.tempo) {	// If there's a tempo waiting to be resolved
+                this.calcTempo(multilineVars.tempo);
+                tune.metaText.tempo = multilineVars.tempo;
+                delete multilineVars.tempo;
+            }
 	};
 
 	this.addUserDefinition = function(line, start, end) {
@@ -323,7 +323,8 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 						multilineVars.meter = meter;
 					return [ e-i+1+ws ];
 				case "[K:":
-					var result = window.ABCXJS.parse.parseKeyVoice.parseKey(line.substring(i+3, e), transposer );
+                                        // parseKey não precisa conhecer o transposer porque a string da linha já foi transposta integralmente antes deste ponto.
+					var result = window.ABCXJS.parse.parseKeyVoice.parseKey(line.substring(i+3, e) ); // flavio
 					if (result.foundClef && tune.hasBeginMusic())
 						tune.appendStartingElement('clef', multilineVars.currTexLineNum, -1, -1, multilineVars.clef);
 					if (result.foundKey && tune.hasBeginMusic())
@@ -417,7 +418,8 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 		R: 'rhythm',
 		S: 'source',
 		W: 'unalignedWords',
-		Z: 'transcription'
+		Z: 'transcription',
+                X: 'pieceId'
 	};
 
 	this.parseHeader = function(line, lineNumber ) {
@@ -495,10 +497,12 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 							break;
 						case  's':
 							return {symbols: true};
+						case  'b':
+							return {bassfingering: true};
+						case  'f':
+							return {fingering: true};
 						case  'w':
 							return {words: true};
-						case 'X':
-							break;
 						case 'E':
 						case 'm':
 							warn("Ignored header", line, 0);

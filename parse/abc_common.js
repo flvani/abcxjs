@@ -1,4 +1,4 @@
-﻿//    abc_parse.js: parses a string representing ABC Music Notation into a usable internal structure.
+//    abc_parse.js: parses a string representing ABC Music Notation into a usable internal structure.
 //    Copyright (C) 2010 Paul Rosen (paul at paulrosen dot net)
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -14,82 +14,65 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 if (!window.ABCXJS)
 	window.ABCXJS = {};
 
 if (!window.ABCXJS.parse)
-	window.ABCXJS.misc = {};
-
-window.ABCXJS.misc.isOpera = function() {
-    return ( !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0 );
+	window.ABCXJS.math = {};
     
+window.ABCXJS.math.isNumber = function (n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};    
+
+if (!window.ABCXJS.parse)
+	window.ABCXJS.misc = {};
+    
+window.ABCXJS.misc.isOpera = function() { // Opera 8.0+
+    return ( (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0 );
 };
 
 window.ABCXJS.misc.isChrome= function() {
-    return (( !!window.chrome && !ABCXJS.misc.isOpera() ) > 0 ); // Chrome 1+
+    return (!!window.chrome && !!window.chrome.webstore);
 };
 
-window.ABCXJS.misc.isFirefox = function() {
-    return ( typeof InstallTrigger !== 'undefined' );  // Firefox 1+ 
+window.ABCXJS.misc.isChromium= function() { // Chrome 1+
+    var test1 =  (( !!window.chrome && !ABCXJS.misc.isOpera() ) > 0 ); 
+   
+    if(!test1) return false;
+    
+    for (var i=0; i<navigator.plugins.length; i++)
+        if (navigator.plugins[i].name === 'Chrome PDF Viewer') return false;
+    
+    return true;
 };
 
-window.ABCXJS.misc.isSafari = function() {
-    return ( Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 ); 
+window.ABCXJS.misc.isFirefox = function() { // Firefox 1+ 
+    return ( typeof InstallTrigger !== 'undefined' );  
+};
+
+window.ABCXJS.misc.isSafari = function() { // Safari 3.0+
+    return ( /constructor/i.test(window.HTMLElement) || (function (p) { 
+        return p.toString() === "[object SafariRemoteNotification]"; } )
+            (!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification)) 
+    ); 
 };
 
 window.ABCXJS.misc.isIE = function() {
-  // Test values; Uncomment to check result …
+    
+    if( /* @ cc_on ! @ */ false || !! document.documentMode ) { // Internet Explorer 6-11
+      return true; 
+    }
 
-  // IE 10
-  // ua = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)';
-  
-  // IE 11
-  // ua = 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko';
-  
-  // IE 12 / Spartan
-  // ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
-  
-  // Edge (IE 12+)
-  // ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586';
-  
-  
-    if( /*@cc_on!@*/false || !!document.documentMode  ) { // At least IE6    
-      return true;
-  }
+    if( navigator.appName.indexOf("Internet Explorer")!==-1 ){ // Yeah, he's using IE
+       return true;
+    }
+    return false;
+};    
 
-  if( navigator.appName.indexOf("Internet Explorer")!==-1 ){     //yeah, he's using IE
-     return true;
-  }
-  
-  var ua = window.navigator.userAgent;
-  
-  var msie = ua.indexOf('MSIE ');
-  if (msie > 0) {
-    // IE 10 or older => return version number
-    //return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
-    return true;
-  }
-
-  var trident = ua.indexOf('Trident/');
-  if (trident > 0) {
-    // IE 11 => return version number
-    var rv = ua.indexOf('rv:');
-    //return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
-    return true;
-  }
-
-  var edge = ua.indexOf('Edge/');
-  if (edge > 0) {
-    // Edge (IE 12+) => return version number
-    //return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
-    return true;
-}
-
-  // other browser
-  return false;
+window.ABCXJS.misc.isEdge = function() {
+    return (!ABCXJS.misc.isIE() && !!window.StyleMedia); // Edge 20+
 };
+
 
 if (!window.ABCXJS)
 	window.ABCXJS = {};
@@ -129,6 +112,102 @@ window.ABCXJS.parse.clone = function(obj) {
     
     throw new Error("Unable to copy obj! Its type isn't supported.");
 };
+
+
+window.ABCXJS.parse.getBarLine = function(line, i) {
+    var ii = i;
+    var dd = 2; // conta repeticoes ao acrescentar múltiplos ":" à esquerda da barra
+    switch (line.charAt(i)) {
+        case ']':
+            ++i;
+            switch (line.charAt(i)) {
+                case '|': return {len: 2, token: "bar_thick_thin"};
+                case '[':
+                    ++i;
+                    if ((line.charAt(i) >= '1' && line.charAt(i) <= '9') || line.charAt(i) === '"')
+                        return {len: 2, token: "bar_invisible"};
+                    return {len: 1, warn: "Unknown bar symbol"};
+                default:
+                    return {len: 1, token: "bar_invisible"};
+            }
+            break;
+        case ':':
+            ++i;
+            while(line.charAt(i)===':') {++i; dd++;}
+            switch (line.charAt(i)) {
+                case '|':	// :|
+                    ++i;
+                    switch (line.charAt(i)) {
+                        case ']':	// :|]
+                            ++i;
+                            switch (line.charAt(i)) {
+                                case '|':	// :|]|
+                                    ++i;
+                                    if (line.charAt(i) === ':') {
+                                        while(line.charAt(i)===':') {++i;}
+                                        return {len: i-ii, token: "bar_dbl_repeat", repeat: dd};
+                                    }
+                                    return {len: i-ii, token: "bar_right_repeat", repeat: dd};
+                                default:
+                                    return {len: i-ii, token: "bar_right_repeat", repeat: dd};
+                            }
+                            break;
+                        case ':':	// :|:
+                            while(line.charAt(i)===':') {++i;}
+                            return {len: i-ii, token: "bar_dbl_repeat", repeat: dd };
+                        case '|':	// :||
+                            ++i;
+                            if (line.charAt(i) === ':') { //:||:
+                                while(line.charAt(i)===':') {++i;}
+                                return {len: i-ii, token: "bar_dbl_repeat", repeat: dd};
+                            }
+                            return {len: i-ii, token: "bar_right_repeat", repeat: dd};
+                        default:
+                            return {len: i-ii, token: "bar_right_repeat", repeat: dd };
+                    }
+                    break;
+                default:
+                    return {len: i-ii, token: "bar_dbl_repeat"};
+            }
+            break;
+        case '[':	// [
+            ++i;
+            if (line.charAt(i) === '|') {	// [|
+                ++i;
+                switch (line.charAt(i)) {
+                    case ':': // [|:
+                       while(line.charAt(i)===':') {++i;}
+                       return {len: i-ii, token: "bar_left_repeat"};
+                    case ']': return {len: 3, token: "bar_invisible"};
+                    default: return {len: 2, token: "bar_thick_thin"};
+                }
+            } else {
+                if ((line.charAt(i) >= '1' && line.charAt(i) <= '9') || line.charAt(i) === '"')
+                    return {len: 1, token: "bar_invisible"};
+                return {len: 0};
+            }
+            break;
+        case '|':	// |
+            ++i;
+            switch (line.charAt(i)) {
+                case ']': return {len: 2, token: "bar_thin_thick"};
+                case '|': // ||
+                    ++i;
+                    if (line.charAt(i) === ':') { // ||:
+                        while(line.charAt(i)===':') {++i;}
+                        return {len: i-ii, token: "bar_left_repeat"};
+                    }
+                    return {len: 2, token: "bar_thin_thin"};
+                case ':':	// |:
+                    while(line.charAt(i)===':') {++i;}
+                    return { len: i-ii, token: "bar_left_repeat"};
+                default: return {len: 1, token: "bar_thin"};
+            }
+            break;
+    }
+    return {len: 0};
+};
+
 
 window.ABCXJS.parse.normalizeAcc = function ( cKey ) {
     return cKey.replace(/([ABCDEFG])#/g,'$1♯').replace(/([ABCDEFG])b/g,'$1♭');
@@ -188,13 +267,23 @@ window.ABCXJS.parse.pitches =
     { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6, 
         c: 7, d: 8, e: 9, f: 10, g: 11, a: 12, b: 13 };
 
-window.ABCXJS.parse.number2keyflat  = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
-window.ABCXJS.parse.number2keysharp = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-window.ABCXJS.parse.number2key_br   = ["Dó", "Ré♭", "Ré", "Mi♭", "Mi", "Fá", "Fá♯", "Sol", "Lá♭", "Lá", "Si♭", "Si"];
+window.ABCXJS.parse.key2br = 
+    {"C":"Dó", "C♯":"Dó♯", "D♭":"Ré♭", "D":"Ré", "D♯":"Ré♯", "E♭":"Mi♭", "E":"Mi", 
+     "F":"Fá" ,"F♯":"Fá♯" ,"G♭":"Sol♭", "G":"Sol", "G♯":"Sol♯" ,"A♭":"Lá♭", "A":"Lá", "A♯":"Lá♯", "B♭":"Si♭", "B":"Si" };
 
 window.ABCXJS.parse.key2number = 
     {"C":0, "C♯":1, "D♭":1, "D":2, "D♯":3, "E♭":3, "E":4, 
      "F":5 ,"F♯":6 ,"G♭":6, "G":7, "G♯":8 ,"A♭":8, "A":9, "A♯":10, "B♭":10, "B":11 };
+
+window.ABCXJS.parse.number2keyflat  = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+window.ABCXJS.parse.number2keysharp = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+window.ABCXJS.parse.number2key      = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "G♯", "A", "B♭", "B"];
+
+/*
+window.ABCXJS.parse.number2keyflat_br  = ["Dó", "Ré♭", "Ré", "Mi♭", "Mi", "Fá", "Sol♭", "Sol", "Lá♭",  "Lá", "Si♭", "Si"];
+window.ABCXJS.parse.number2keysharp_br = ["Dó", "Dó♯", "Ré", "Ré♯", "Mi", "Fá", "Fá♯",  "Sol", "Sol♯", "Lá", "Lá♯", "Si"];
+window.ABCXJS.parse.number2key_br      = ["Dó", "Dó♯", "Ré", "Mi♭", "Mi", "Fá", "Fá♯",  "Sol", "Sol♯", "Lá", "Si♭", "Si"];
+*/
 
 window.ABCXJS.parse.number2staff   = 
     [    
@@ -227,3 +316,25 @@ window.ABCXJS.parse.number2staffSharp   =
        ,{note:"A", acc:"sharp"} 
        ,{note:"B", acc:""} 
     ];
+
+window.ABCXJS.parse.stringify = function(objeto) {
+
+    var cache = [];
+    var ret = JSON.stringify(objeto, function(key, value) {
+        if (typeof value === 'object' && value !== null) {
+            if (cache.indexOf(value) !== -1) {
+                // Circular reference found, discard key
+                return;
+            }
+            // Store value in our collection
+            cache.push(value);
+        }
+        return value;
+    });
+    return ret;
+};
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};

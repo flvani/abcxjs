@@ -11,21 +11,24 @@ if (!window.DIATONIC)
 if (!window.DIATONIC.map)
     window.DIATONIC.map = {};
 
-DIATONIC.map.Button = function( x, y, options ) {
+DIATONIC.map.Button = function( kb, x, y, options ) {
 
     var opt = options || {};
     
+    this.kb = kb;
     this.x = x;
     this.y = y;
+    
     this.openNote = null;
     this.closeNote = null;
     this.tabButton = null;
+    
     this.SVG  = {gid: 0}; // futuro identificador
     
-    this.openColor = opt.openColor || '#00ff00';
-    this.closeColor = opt.closeColor || '#00b2ee';
-    this.radius = opt.radius || 26;
-    this.kls = opt.kls || 'button';
+    this.radius = opt.radius;
+    this.isPedal  = opt.isPedal || false;
+    this.borderWidth = opt.borderWidth || (this.isPedal?2:1);
+    this.borderColor = opt.borderColor || (this.isPedal?'red':'black');
 
 };
 
@@ -42,49 +45,96 @@ DIATONIC.map.Button.prototype.draw = function( id, printer, limits, options ) {
         currX = options.mirror ? limits.maxX - this.radius*2 - (this.x - limits.minX): this.x;
         currY = this.y;
     }
-   
-    this.SVG.gid = printer.printButton( id, currX, currY, this.radius, this.kls );
+    
+    options = options || {};
+    options.radius = this.radius;
+    options.borderColor = this.borderColor;
+    options.borderWidth = this.borderWidth;
+    options.fillColor = (options.kls && options.kls === 'blegenda'? 'none' : DIATONIC.map.color.fill );
+    options.openColor = (options.kls && options.kls === 'blegenda'? DIATONIC.map.color.open : 'none' );
+    options.closeColor = (options.kls && options.kls === 'blegenda'? DIATONIC.map.color.close : 'none' );
+    
+    if(this.closeNote && this.closeNote.isBass)
+        options.pautaNumerica = false;
+
+    this.isNumerica = options.pautaNumerica; 
+
+    this.SVG.gid = printer.printButton( id, currX, currY, options );
 
 };
 
 DIATONIC.map.Button.prototype.clear = function(delay) {
-    if(!this.SVG) return;
+    if(!this.SVG.button ) return;
     var that = this;
     if(delay) {
         window.setTimeout(function(){ that.clear(); }, delay*1000);
         return;
     }    
-    this.SVG.button.style.setProperty( '--close-color', 'none' );
-    this.SVG.button.style.setProperty( '--open-color', 'none' );
+    this.SVG.closeArc.style.setProperty( 'fill', 'none' );
+    this.SVG.openArc.style.setProperty( 'fill', 'none' );
 };
 
 DIATONIC.map.Button.prototype.setOpen = function(delay) {
-    if(!this.SVG) return;
+    if(!this.SVG.button ) return;
     var that = this;
     if(  delay ) {
         window.setTimeout(function(){that.setOpen();}, delay*1000 );
         return;
     } 
-    this.SVG.button.style.setProperty( '--open-color', this.openColor );
+    this.SVG.openArc.style.setProperty( 'fill', DIATONIC.map.color.open );
 };
 
 DIATONIC.map.Button.prototype.setClose = function(delay) {
-    if(!this.SVG) return;
+    if(!this.SVG.button ) return;
     var that = this;
     if(  delay ) {
         window.setTimeout(function(){that.setClose();}, delay*1000);
         return;
     } 
-    this.SVG.button.style.setProperty( '--close-color', this.closeColor );
+    this.SVG.closeArc.style.setProperty( 'fill', DIATONIC.map.color.close );
 };
 
-DIATONIC.map.Button.prototype.setSVG = function(showLabel, open, close ) {
+DIATONIC.map.Button.prototype.setSVG = function( showLabel, opts ) {
     var b = this.SVG;
+    var n = 0;
+    var pull = opts.pull || null;
+    var push = opts.push || null;
+    var translator = opts.translator || null ;
+    var formato = opts.formatoNumerico || null;
+    var isMini = opts.mini;
+
     this.SVG.button = document.getElementById(b.gid);
+    this.SVG.openArc = document.getElementById(b.gid + '_ao');
+    this.SVG.closeArc = document.getElementById(b.gid + '_ac');
     this.SVG.openText = document.getElementById(b.gid+'_to');
     this.SVG.closeText = document.getElementById(b.gid+'_tc');
-    this.setText(showLabel, open, close ); 
-};
+    this.SVG.numericText = document.getElementById(b.gid + '_tn');
+    this.SVG.numericTextMini = document.getElementById(b.gid + '_tm');
+
+    if( this.isNumerica ){
+        if (formato.overrides[this.tabButton]) {
+            n = formato.overrides[this.tabButton];
+        } else {
+            var i = parseInt(this.tabButton);
+            var j = (this.tabButton.match(/'/g) || []).length
+            n = i + formato.rule[j];
+        }
+        if (isMini)
+            this.SVG.numericTextMini.textContent = n;
+        else
+            this.SVG.numericText.textContent = n;
+    }
+
+    if ( !this.isNumerica || isMini ) {
+        if( translator ) {
+            this.SVG.openText.setAttribute( 'data-translate', pull );
+            this.SVG.closeText.setAttribute( 'data-translate', push );
+            this.setText(showLabel, translator.getResource(pull), translator.getResource(push) ); 
+        } else {
+            this.setText(showLabel, pull, push ); 
+        }
+    }
+}
 
 DIATONIC.map.Button.prototype.setText = function( showLabel, open, close ) {
     if(this.SVG.openText) {
@@ -94,15 +144,11 @@ DIATONIC.map.Button.prototype.setText = function( showLabel, open, close ) {
 };
 
 DIATONIC.map.Button.prototype.getLabel = function(nota, showLabel) {
-    var l = '';
-    if (showLabel) {
-        l= DIATONIC.map.number2key_br[nota.value];
-    } else {
-        l = DIATONIC.map.number2key[nota.value];
-    }
+    var l = nota.key;
     
-    if( showLabel )  {
+    if (showLabel) {
         l = l.toUpperCase() + '';
+        l = ABCXJS.parse.key2br[l].toUpperCase();
     }
     
     if ( nota.isChord ) {

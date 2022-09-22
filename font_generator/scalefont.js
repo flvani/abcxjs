@@ -108,7 +108,7 @@ function scale_font(font, size, raphael) {
       } else {
 	gstr+=glyph;
       }
-      gstr += "':{d:";
+      gstr += "\\t, ':{d:";
       gstr += path.toSource();
       gstr +=",w:"+w+",h:"+h+"}";
       res[res.length] = gstr;

@@ -51,9 +51,9 @@ if (! window.FILEMANAGER) {
          reader : new FileReader()
         ,files : []
         ,currName : null
-        ,currExtension: 'abc'
+        ,currExtension: 'abcx'
         ,type: 'text'
-        ,toLoad : 0
+        //,toLoad : 0
     };
     
     FILEMANAGER.reader.onload = function(progressEvent) {
@@ -70,11 +70,16 @@ if (! window.FILEMANAGER) {
 }
 
 FILEMANAGER.managedResources = {};
+FILEMANAGER.total = 0;
+FILEMANAGER.loaded = 0;
 FILEMANAGER.timeouts = 0;
+FILEMANAGER.timeoutInterval = 50;
+FILEMANAGER.maxTimeouts = 400;
 FILEMANAGER.errors = "";
 FILEMANAGER.success = "";
 
 FILEMANAGER.register = function (res) {
+    FILEMANAGER.total ++;
     if(FILEMANAGER.managedResources[res]) {
        FILEMANAGER.managedResources[res].qtde ++; 
     } else {
@@ -83,8 +88,10 @@ FILEMANAGER.register = function (res) {
 };
 
 FILEMANAGER.deregister = function (res, succ) {
+    
     if(FILEMANAGER.managedResources[res]) {
        if(succ) {
+            FILEMANAGER.loaded++;
             FILEMANAGER.managedResources[res].succ ++;
        } else {
             FILEMANAGER.managedResources[res].fail ++; 
@@ -92,12 +99,15 @@ FILEMANAGER.deregister = function (res, succ) {
     }
 };
 
+FILEMANAGER.getPercent = function () {
+  return FILEMANAGER.total ? FILEMANAGER.loaded / FILEMANAGER.total * 100 : 0;   
+};
 // returns -1 (wait), 0 (success) and 1 (fail)
 FILEMANAGER.checkResources = function () {
   var ret = 0;
   for( var s in FILEMANAGER.managedResources ) {
       var r = FILEMANAGER.managedResources[s];
-      if( r.qtde > 0 && (r.succ+r.fail) < r.qtde && FILEMANAGER.timeouts < 20 ) {
+      if( r.qtde > 0 && (r.succ+r.fail) < r.qtde && FILEMANAGER.timeouts < FILEMANAGER.maxTimeouts ) {
           FILEMANAGER.timeouts++;
           return -1;
       }
@@ -105,14 +115,31 @@ FILEMANAGER.checkResources = function () {
   for( var s in FILEMANAGER.managedResources ) {
       var r = FILEMANAGER.managedResources[s];
       if( r.qtde > 0 && ( r.fail > 0 || ((r.succ+r.fail) < r.qtde) ) ) {
-          FILEMANAGER.errors += 'Recurso ' + s + ' teve problemas ao carregar ('+ r.qtde +'/'+ r.succ +'/'+ r.fail +').\n';
+          FILEMANAGER.errors += '\tRecurso ' + s + ' teve problemas ao carregar ('+ r.qtde +'/'+ r.succ +'/'+ r.fail +').\n';
           ret = 1;
       } else {
-          FILEMANAGER.success += 'Recurso ' + s + ': '+ r.qtde +' ok...\n';
+          FILEMANAGER.success += '\tRecurso ' + s + ': '+ r.qtde +' ok...\n';
       }
   }
   return ret;
   
+};
+
+FILEMANAGER.waitResources = function (cb) {
+
+    // returns -1 (wait), 0 (success) and 1 (fail)
+    switch( FILEMANAGER.checkResources() ) {
+        case -1: 
+            cb.onProgress && cb.onProgress({perc:FILEMANAGER.getPercent()});
+            window.setTimeout(function(){ FILEMANAGER.waitResources(cb); }, FILEMANAGER.timeoutInterval);
+            break;
+        case 1:
+            cb.onLoad && cb.onLoad(false);
+            break;
+        case 0:    
+            cb.onProgress && cb.onProgress({perc:FILEMANAGER.getPercent(), timeouts:FILEMANAGER.timeouts, success: FILEMANAGER.success} );
+            cb.onLoad && cb.onLoad(true);
+    }
 };
 
 FILEMANAGER.loadLocalFiles = function(evt, cb) {
@@ -179,21 +206,29 @@ FILEMANAGER.requiredFeaturesAvailable = function() {
     }
 };
 
-FILEMANAGER.html5StorageSupport = function() {
-    try
-    {
+FILEMANAGER.html5StorageSupport = function () {
+    try {
         return 'localStorage' in window && window['localStorage'] !== null;
-    }
-    catch (e)
-    {
+    } catch (e) {
+        waterbug.log('html5 storage not supported.');
         return false;
     }
 };
 
-FILEMANAGER.saveLocal = function(name, content) {
-   localStorage.setItem( name, content );
+FILEMANAGER.saveLocal = function (name, content) {
+    if (FILEMANAGER.html5StorageSupport()) {
+        localStorage.setItem(name, content);
+    }
 };
 
-FILEMANAGER.loadLocal = function(name) {
-   return localStorage.getItem(name);
+FILEMANAGER.loadLocal = function (name) {
+    if (FILEMANAGER.html5StorageSupport()) {
+        return localStorage.getItem(name);
+    }
+};
+
+FILEMANAGER.removeLocal = function (name) {
+    if (FILEMANAGER.html5StorageSupport()) {
+        return localStorage.removeItem(name);
+    }
 };

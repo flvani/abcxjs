@@ -10,16 +10,17 @@ if (!window.DIATONIC)
 if (!window.DIATONIC.map)
     window.DIATONIC.map = {};
 
-DIATONIC.map.accordionMaps = [];
+DIATONIC.map.color = {};
+DIATONIC.map.color.fill = 'none';
+DIATONIC.map.color.background = 'none';
+DIATONIC.map.color.open = '#00ff00';
+DIATONIC.map.color.close = '#00b2ee';
 
-DIATONIC.map.key2number = 
-    {"C":0, "C♯":1, "D♭":1, "D":2, "D♯":3, "E♭":3, "E":4, 
-     "F":5 ,"F♯":6 ,"G♭":6, "G":7, "G♯":8 ,"A♭":8, "A":9, "A♯":10, "B♭":10, "B":11 };
-
-DIATONIC.map.number2key    = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "G♯", "A", "B♭", "B"];
-DIATONIC.map.number2key_br = ["Dó", "Dó♯", "Ré", "Mi♭", "Mi", "Fá", "Fá♯", "Sol", "Sol♯", "Lá", "Si♭", "Si"];
-
-DIATONIC.map.loadAccordionMaps = function ( files, cb )  {
+DIATONIC.map.loadAccordionMaps = function ( files, opts, cb )  {
+    
+    if( ! DIATONIC.map.accordionMaps )
+        DIATONIC.map.accordionMaps = [];
+    
     var toLoad = 0;
     for( var f = 0; f <  files.length; f ++ ) {
         toLoad ++;
@@ -28,17 +29,25 @@ DIATONIC.map.loadAccordionMaps = function ( files, cb )  {
         $.getJSON( files[f], {  format: "json"  })
             .done(function( data ) {
                 FILEMANAGER.deregister('MAP', true);
-                DIATONIC.map.accordionMaps.push( new DIATONIC.map.AccordionMap(data) );
+                DIATONIC.map.accordionMaps.push( new DIATONIC.map.AccordionMap(data, false, opts) );
             })
             .fail(function( data, textStatus, error ) {
                 FILEMANAGER.deregister('MAP', false);
                 var err = textStatus + ", " + error;
-                console.log( "Accordion Load Failed:\nLoading: " + data.responseText.substr(1,40) + '...\nError:\n ' + err );
+                waterbug.log( "Accordion Load Failed:\nLoading: " + data.responseText.substr(1,40) + '...\nError:\n ' + err );
             })
             .always(function() {
-                toLoad --;
-                if( toLoad === 0 && cb ) cb();
+                toLoad --; 
+                if( toLoad === 0 ) {
+                    DIATONIC.map.sortAccordions();
+                    cb && cb();
+                }
             });
     }
 };
 
+DIATONIC.map.sortAccordions = function () {
+    DIATONIC.map.accordionMaps.sort( function(a,b) { 
+        return parseInt(a.menuOrder) - parseInt(b.menuOrder);
+    });
+};

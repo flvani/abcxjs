@@ -1,4 +1,4 @@
-/**
+    /**
  * sprintf() for JavaScript v.0.4
  *
  * Copyright (c) 2007 Alexandru Marasteanu <http://alexei.417.ro/>

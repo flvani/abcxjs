@@ -1,0 +1,310 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 12/04/2015, 21:03:00
+    Author     : flavio
+*/
+
+.draggableWindow {
+    margin: 0;
+    padding:0;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    position:fixed;
+    display:none;
+    min-width: 200px;
+    width: fit-content;
+    height: auto;
+    min-height: 60px;
+    z-index: 100;
+    border: thin solid rgba(100,100,100,0.3);
+    background: #F1F1F1;
+    pointer-events: auto;
+    overflow: hidden;
+    outline: none;
+
+    box-shadow: 6px 6px 6px -3px rgba(0,0,0,0.7);
+    -webkit-box-shadow: 6px 6px 6px -3px rgba(0,0,0,0.7);
+    -moz-box-shadow: 6px 6px 6px -3px rgba(0,0,0,0.7);
+    -ms-box-shadow: 6px 6px 6px -3px rgba(0,0,0,0.7);
+    -o-box-shadow: 6px 6px 6px -3px rgba(0,0,0,0.7);
+}
+
+.draggableWindow:focus {
+    outline: 0px solid transparent;
+}
+
+.noShadow {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    -ms-box-shadow: none;
+    -o-box-shadow: none;
+}
+
+.draggableMenu {
+    clear:both;
+    font-family: "abcx";
+    font-size: 16px;
+    position:relative;
+    display: block; 
+    margin: 0;
+    padding: 0;
+    top:0; 
+    left:0; 
+    width:auto; 
+    height:auto; 
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.draggableToolBar {
+    clear: both;
+    font-family: "abcx";
+    font-size: 16px;
+    position: relative;
+    /*display:inline-block;*/
+    float:left;
+    margin: 0;
+    padding: 1px;
+    width: calc(100% - 2px);
+    height: auto; 
+    pointer-events: auto;
+    /*overflow: hidden;*/
+    background: lightblue;
+    background-color: #EBEBEB;
+    background: #e9edf0;
+    border-bottom: 1px solid rgba(100,100,100,0.5);
+}
+
+.draggableToolBar button {
+    position: relative;
+    display: block;
+    float:left;
+    text-align: left;
+    /*vertical-align: middle;*/
+    font-family: 'Milonga','Arial';
+    font-weight: normal;
+    font-size: 28px;
+    line-height: 24px;
+    height: 28px;
+    width: auto;
+    text-shadow: 2px 1px 2px rgba(50, 50, 50, 0.8); 
+    left: 0;
+    margin: 0;
+    margin-left: 4px;
+    padding: 4px;
+    outline: none !important;
+    border: none;
+    color: black;
+    background-color: transparent;
+    
+}
+
+.draggableData {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+    width: 100%;
+    height: calc( 100% - 24px );
+}
+
+.dTitle {
+  top: 0;
+  display:block;
+  padding: 0; 
+  height: auto;
+  text-align: left;
+  font-family: 'AllertaStencil', 'RobotoItalic';
+  font-size: 16px;
+  font-weight: bold;
+  pointer-events: none;
+  background-color: transparent;
+  white-space: nowrap;
+}
+
+.dButton {
+  float:left;
+  background: none;
+  color: #FFFFFF;
+  display:block;
+  text-align: center;
+  height: inherit;
+  top:0;
+  margin:0;
+  padding: 4px;
+  padding-left: 10px;
+  padding-right: 8px;
+  
+}
+
+.dButton:hover { background-color: #D4482D; }
+.dButton > a { color: white; text-decoration: none; }
+.dButton > a:hover { text-decoration: none; }
+
+.draggableStatus {
+    position: absolute;
+    bottom: 0;
+    left:0;
+    height: 18px;
+    width: 100%;
+    background-color:rgb(160,160,160);
+    background-color: #EBEBEB;
+    background: #e9edf0;
+    color: white;
+    border-top: 1px solid rgba(100,100,100,0.5);
+   /* border-bottom-right-radius: 4px;*/
+}
+
+.draggableStatusMsgLine {
+    background: none;
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    height: 18px;
+    color:red;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+.draggableAlternativeResize {
+    background: none;
+    display: block;
+    position: absolute;
+    bottom: -10px;
+    right: -9px;
+    z-index: -1;
+}
+
+.draggableAlternativeResizeTop {
+    background: none;
+    display: block;
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    z-index: -1;
+}
+
+.draggableStatusResize {
+    background: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    height: 18px;
+}
+
+.pushbutton-group {
+    position: absolute;
+    display: block;
+}
+
+.pushbutton {
+    position: relative;
+    display: block;
+    float: left;
+    background-color: darkgray;
+    color: white;
+    min-width: 50px;
+    min-height: 20px;
+    margin: 5px;
+    margin-left: 0;
+    padding: 5px;
+}
+
+.pushbutton:hover {
+    background-color: blue;
+    color: white;
+    opacity: 0.4;
+}
+
+.cancel:hover {
+    background-color: red !important;
+}
+
+.pushbutton i {
+    font-size: 150%;
+    font-weight: bolder;
+    margin: 5px;
+    margin-left: 2px;
+}
+
+.picker-group { 
+    display: inline-block;
+    margin:5px;
+    width: auto;
+    height: auto;
+}
+
+.picker-group .pickerCanvas { 
+    display: block;
+}    
+
+.picker-group > input { 
+    width: 93px;
+    height: 30px;
+    font-family: 'Milonga','Arial';
+    font-weight: bold;
+    border: none;
+    text-align: center;
+}    
+
+.dialog {
+    min-height: 200px;
+    display: block;
+}
+
+.dialog .flag {
+    position: absolute;
+    height: 100px;
+    width: 100px;
+    display: block;
+    font-size: 600%;
+    color:red;
+    margin: 20px;
+    padding: 10px 0px 10px 0px;
+    border: 1px solid red;
+    border: none;
+    float:left;
+}
+
+.dialog .text-group {
+    position:relative;
+    clear:both;
+    top:0;
+    left: 120px;
+    margin: 0;
+    float:none;
+    min-height: 200px;
+    min-width: 350px;
+    max-width: 350px;
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid blue;
+    border: none;
+}
+.dialog .wide {
+   max-width: 520px;
+ }
+
+.dialog .text-group .title {
+    float:bottom;
+    font-size: 20px;
+    text-align: left;
+    padding-bottom: 10px;
+    
+}
+
+.dialog .text-group .description {
+    float: bottom;
+    font-size: 14px;
+    text-align: justify;
+}
+
+.dialog .text-group input[type="text"] {
+  width: 300px;   
+}
+

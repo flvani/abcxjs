@@ -44,7 +44,7 @@ window.ABCXJS.data.Tune = function() {
     //		lyric: array of { syllable: xxx, divider: one of " -_" }
     //		startTie = true|undefined
     //		endTie = true|undefined
-    //		startTriplet = num <- that is the number to print
+    //		startTriplet = {num <- the number to print, notes <- total elements} 
     //		endTriplet = true|undefined (the last note of the triplet)
     // TODO: actually, decoration should be an array.
     //		decoration: upbow, downbow, accent
@@ -90,9 +90,14 @@ window.ABCXJS.data.Tune = function() {
             case "letter":
                 ph = 11 * dpi;
                 pw = 8.5 * dpi;
+                break;
             case "legal":
                 ph = 14 * dpi;
                 pw = 8.5 * dpi;
+                break;
+            case "screen":
+                ph = 16 * dpi;
+                pw = 8 * dpi;
                 break;
             case "a4":
             default:    
@@ -115,22 +120,64 @@ window.ABCXJS.data.Tune = function() {
         this.formatting.pageratio = (ph-(2*defaultMarginDPI))/(pw-(2*defaultMarginDPI));
         
         
-        if (!this.formatting.landscape)     this.formatting.landscape = ls;
-        if (!this.formatting.papersize)     this.formatting.papersize = ps.toLowerCase();
-        if (!this.formatting.defaultMargin) this.formatting.defaultMargin = ''+defaultMargin+'cm';
-        if (!this.formatting.pagewidth)     this.formatting.pagewidth = pw;
-        if (!this.formatting.pageheight)    this.formatting.pageheight = ph;
-        if (!this.formatting.pagenumbering) this.formatting.pagenumbering = pn;
-        if (!this.formatting.staffsep)      this.formatting.staffsep = ss;
-        if (!this.formatting.barsperstaff)  this.formatting.barsperstaff = vars.barsperstaff;
-        if (!this.formatting.staffwidth)    this.formatting.staffwidth = this.formatting.usablewidth;
+        if (!this.formatting.landscape)         this.formatting.landscape = ls;
+        if (!this.formatting.papersize)             this.formatting.papersize = ps.toLowerCase();
+        if (!this.formatting.defaultMargin)         this.formatting.defaultMargin = ''+defaultMargin+'cm';
+        if (!this.formatting.pagewidth)             this.formatting.pagewidth = pw;
+        if (!this.formatting.pageheight)            this.formatting.pageheight = ph;
+        if (!this.formatting.pagenumbering)         this.formatting.pagenumbering = pn;
+        if (!this.formatting.staffsep)              this.formatting.staffsep = ss;
+        if (!this.formatting.barsperstaff)          this.formatting.barsperstaff = vars.barsperstaff;
+        if (!this.formatting.staffwidth)            this.formatting.staffwidth = this.formatting.usablewidth;
+        if (!this.formatting.tabInferenceOpts )     this.formatting.tabInferenceOpts = +1.0 ;
+        if (!this.formatting.restsInTab )           this.formatting.restsInTab = false;
+
+        //aqui temos diretivas que também serão opções de tela. 
+        //por definição, a diretiva terá precedência sobre as opções de tela        
+        if (!this.formatting.hideLyrics )           this.formatting.hideLyrics = vars.hideLyrics || false;
+        if (!this.formatting.hideFingering )        this.formatting.hideFingering = vars.hideFingering || false;
+        if (!this.formatting.tabprintrowsnumbered ) this.formatting.tabprintrowsnumbered = vars.ilheirasNumeradas || false;
         
     };
-
+    
     this.handleBarsPerStaff = function() {
         function splitBar(left, right) {
             
+            // divide as decorações de jump
+            if( left.jumpDecoration ) {
+                var jd = window.ABCXJS.parse.clone(left.jumpDecoration);
+                delete left.jumpDecoration;
+                delete right.jumpDecoration;
+                for(var j=0; j< jd.length; j ++ ) {
+                    if( (".coda.fine.dacapo.dacoda.dasegno.").indexOf('.'+jd[j].type+'.') >= 0 ) {
+                        left.jumpDecoration = left.jumpDecoration || [];
+                        left.jumpDecoration.push( jd[j] ); 
+                    } else {
+                        right.jumpDecoration = right.jumpDecoration || [];
+                        right.jumpDecoration.push( jd[j] ); 
+                        
+                    }
+                }
+            }    
+                
+            // todos os jumpInfo ficam a esquerda do split
+            // exceto segno todos os jumpPoint ficam a esquerda do split
+            if(  left.jumpPoint && left.jumpPoint.type === 'segno'  ) {
+                delete left.jumpInfo;
+            }
+            // todos os jumpInfo ficam a esquerda do split
+            if(  right.jumpInfo ) {
+                delete right.jumpInfo;
+            }
+            // exceto segno todos os jumpPoint ficam a esquerda do split
+            if(  right.jumpPoint &&  right.jumpPoint.type !== 'segno'  ) {
+                delete right.jumpInfo;
+            }
+            
+            
             delete left.startEnding;
+            delete left.barNumber;
+            delete left.barNumberVisible;
             switch( left.type ) {
                 case 'bar_dbl_repeat': 
                 case 'bar_right_repeat': 
@@ -158,9 +205,31 @@ window.ABCXJS.data.Tune = function() {
             if(right === undefined ) {
                 return;
             }
-
+            
+            // flavio - não verificado
+            if(right.jumpPoint) {
+                left.jumpPoint = right.jumpPoint;
+            }
+            
+            // flavio - não verificado
+            if(right.jumpInfo) {
+                left.jumpInfo = right.jumpInfo;
+            }
+            
+            if( right.jumpDecoration ) {
+                for(var j=0; j< right.jumpDecoration.length; j ++ ) {
+                    left.jumpDecoration = left.jumpDecoration || [];
+                    left.jumpDecoration.push( right.jumpDecoration[j] ); 
+                }
+            }
+            
             if(right.startEnding){
                 left.startEnding = right.startEnding;
+            }
+            
+            if(right.barNumber){
+                left.barNumber = right.barNumber;
+                left.barNumberVisible = right.barNumberVisible;
             }
 
             if( left.type === 'bar_right_repeat' ) {
@@ -201,14 +270,26 @@ window.ABCXJS.data.Tune = function() {
                                         var section2 = cp.staffs[ss].voices[vv].splice(1);
                                         joinBar(section1[section1.length-1], cp.staffs[ss].voices[vv][0] );
                                         this.lines[i].staffs[ss].voices[vv] = section1.concat(section2);
+                                        
+                                        //trata lyricsRows, garantido que a maior quantidade prevaleça na linha previa
+                                        try {
+                                            var mlr = Math.max( this.lines[i].staffs[ss].lyricsRows, this.lines[nextline].staffs[ss].lyricsRows );
+                                            this.lines[i].staffs[ss].lyricsRows = mlr;
+                                        }catch(e){
+                                          
+                                        }
                                     }
                                 }
                             }
                         }    
-                        if( barNumThisLine > limite ) {
-                            // move o excesso para a proxima linha, 
+                        var excesso = barNumThisLine - limite;
+                        var ultimaLinha = (i === this.lines.length - 1 );
+
+                        // move o excesso para a proxima linha.
+                        // no caso da última linha, só se sobrar mais de 1 compasso.
+                        if( (!ultimaLinha && excesso > 0 ) || ( ultimaLinha && excesso > 1 )) {
                             // se necessário cria uma nova linha.
-                            if (i === this.lines.length - 1) {
+                            if ( ultimaLinha ) {
                                 var cp = JSON.parse(JSON.stringify(this.lines[i]));
                                 this.lines.push(window.ABCXJS.parse.clone(cp));
                                 for (var ss = 0; ss < this.lines[i + 1].staffs.length; ss++) {
@@ -228,6 +309,10 @@ window.ABCXJS.data.Tune = function() {
 
                             this.lines[i].staffs[s].voices[v] = section1;
                             this.lines[nextline].staffs[s].voices[v] = section2.concat(section3);
+                            
+                            //trata lyricsRows, garantido que a maior quantidade prevaleça na nova linha
+                            var mlr = Math.max( this.lines[i].staffs[s].lyricsRows, this.lines[nextline].staffs[s].lyricsRows );
+                            this.lines[nextline].staffs[s].lyricsRows = mlr;
 
                         }
                     }
@@ -235,6 +320,102 @@ window.ABCXJS.data.Tune = function() {
             }
         }
     };
+    
+    this.checkJumpMarkers = function (addWarning) {
+        // esta rotina:
+        //   cria uma estrutura de auxilio para midi parser
+        //   ajuda no layout dos jump markers que devem impressos na última pauta de cada staff
+        //   verifica a conformidade das barras de compasso da primeira voz com as demais;
+        //
+        // Note: deveria ser chamada somente depois de handleBarsPerStaff que pode alterar os arrays gerados no parse.
+        
+        // identifica as vozes varrendo a primeira linha com staffs
+        var vozes = [];
+        for (var i = 0; i < this.lines.length; i++) {
+            if (this.lines[i].staffs !== undefined) {
+                for (var s = 0; s < this.lines[i].staffs.length; s++) {
+                    for (var v = 0; v < this.lines[i].staffs[s].voices.length; v++) {
+                        vozes.push( {el:0, sf: s, vc: v });
+                    }
+                }
+                break;
+            }
+        }
+        
+        // voz referencial        
+        var v0 = vozes[0]; // primeira
+        var vn = vozes[vozes.length-1]; // última
+        
+        for (var i = 0; i < this.lines.length; i++) {
+            if (this.lines[i].staffs !== undefined) {
+
+                for( var r = 0; r < vozes.length; r++){
+                    vozes[r].el = 0; // sempre recomeçar a varredura dos elementos em cada nova linha
+                }
+
+                // talvez por conta da auto atualização isso acconteca - verificar problemas mais adiante
+                if(!this.lines[i].staffs[v0.sf] || !this.lines[i].staffs[vn.sf] ) continue;
+                
+                this.lines[i].staffs[v0.sf].voices[v0.vc].firstVoice = true;
+                this.lines[i].staffs[vn.sf].voices[vn.vc].lastVoice = true;
+                
+                if( vozes.length < 2 ) continue; // apenas marca a única voz como primeira e última, em cada linha
+                
+                var a0 = this.lines[i].staffs[v0.sf].voices[v0.vc];
+                
+                while( v0.el < a0.length ) {
+                    
+                    while( v0.el < a0.length && a0[v0.el].el_type !== 'bar' ) {
+                        v0.el++;
+                    }
+
+                    if( ! a0[v0.el] || a0[v0.el].el_type !== 'bar' ) break;
+
+                    var bar = a0[v0.el];
+                    v0.el++; 
+
+                    for( var v = 1; v < vozes.length; v++ ) {
+                        var vi = vozes[v];
+                        var ai = this.lines[i].staffs[vi.sf].voices[vi.vc];
+                        
+                        while( vi.el < ai.length && ai[vi.el].el_type !== 'bar' ) {
+                            vi.el++;
+                        }
+                        if( ! ai[vi.el] || ai[vi.el].el_type !== 'bar' ) {
+                            addWarning('Line: '+(i+1)+', Staff: '+(vi.sf+1)+' - Numero de barras diferente da primeira voz');
+                        } else {
+
+                            var bari = ai[vi.el];
+                            vi.el++;
+
+                            if( bar.type !== bari.type  || bar.repeat !== bari.repeat )  {
+                                addWarning('Line: '+(i+1)+', Staff: '+(vi.sf+1)+' - Ajustando tipo de barra de compasso '+bar.barNumber+'.');
+                                bari.type = bar.type;
+                                bari.repeat = bar.repeat;
+                            }
+
+                            if( bar.startEnding && bar.startEnding !== bari.startEnding )  {
+                                addWarning('Line: '+(i+1)+', Staff: '+(vi.sf+1)+' - Ajustando ending do compasso '+bar.barNumber+'.');
+                                bari.startEnding = bar.startEnding;
+                            }
+                            
+                            if( bar.endEnding && bar.endEnding !== bari.endEnding )  {
+                                addWarning('Line: '+(i+1)+', Staff: '+(vi.sf+1)+' - Ajustando ending do compasso '+bar.barNumber+'.');
+                                bari.endEnding = bar.endEnding;
+                            }
+                            
+                            // todas as vozes terão a mesma informação de jump
+                            bari.jumpPoint = bar.jumpPoint;
+                            bari.jumpInfo = bar.jumpInfo;
+                            bari.jumpDecoration = bar.jumpDecoration;
+                        }
+                    }
+                }
+            }
+        }
+
+    };
+
 
     this.cleanUp = function() {
         
@@ -475,7 +656,18 @@ window.ABCXJS.data.Tune = function() {
         delete this.potentialEndBeam;
     };
 
-    this.appendElement = function(type, line, startChar, endChar, hashParams)
+    this.addPosition = function(line, startChar, endChar, hashParams, currentVoice) {
+        if( ABCXJS.math.isNumber(line) &&
+            ABCXJS.math.isNumber(startChar) &&
+            ABCXJS.math.isNumber(endChar) ) {
+            hashParams.position = { anchor: {line: line, ch: startChar}, head: {line: line,ch: endChar} };     
+        }
+        if( currentVoice && currentVoice.staffNum === 0 && currentVoice.index === 0 ) {
+            hashParams.position.selectable=true;
+        }
+    };
+    
+    this.appendElement = function(type, line, startChar, endChar, hashParams, currentVoice)
     {
         var This = this;
         var pushNote = function(hp) {
@@ -493,12 +685,11 @@ window.ABCXJS.data.Tune = function() {
             }
             This.lines[This.lineNum].staffs[This.staffNum].voices[This.voiceNum].push(hp);
         };
+        
         hashParams.el_type = type;
-        hashParams.line =  line;
-        if (startChar !== null)
-            hashParams.startChar = startChar;
-        if (endChar !== null)
-            hashParams.endChar = endChar;
+        
+        this.addPosition(line, startChar, endChar, hashParams, currentVoice);
+        
         var endBeamHere = function() {
             This.potentialStartBeam.startBeam = true;
             hashParams.endBeam = true;
@@ -548,7 +739,7 @@ window.ABCXJS.data.Tune = function() {
         pushNote(hashParams);
     };
 
-    this.appendStartingElement = function(type, currTexLineNum, startChar, endChar, hashParams2)
+    this.appendStartingElement = function(type, line, startChar, endChar, hashParams2)
     {
         // If we're in the middle of beaming, then end the beam.
         this.closeLine();
@@ -576,12 +767,15 @@ window.ABCXJS.data.Tune = function() {
 
         // If this is the first item in this staff, then we might have to initialize the staff, first.
         if (this.lines[this.lineNum].staffs.length <= this.staffNum) {
+            waterbug.log( 'o que é isso?');
+            waterbug.show();
             this.lines[this.lineNum].staffs[this.staffNum] = {};
             this.lines[this.lineNum].staffs[this.staffNum].clef = window.ABCXJS.parse.clone(this.lines[this.lineNum].staffs[0].clef);
             this.lines[this.lineNum].staffs[this.staffNum].key = window.ABCXJS.parse.clone(this.lines[this.lineNum].staffs[0].key);
             this.lines[this.lineNum].staffs[this.staffNum].meter = window.ABCXJS.parse.clone(this.lines[this.lineNum].staffs[0].meter);
             this.lines[this.lineNum].staffs[this.staffNum].workingClef = window.ABCXJS.parse.clone(this.lines[this.lineNum].staffs[0].workingClef);
-            this.lines[this.lineNum].staffs[this.staffNum].voices = [[]];
+            this.lines[this.lineNum].staffs[this.staffNum].voices = [];
+            this.lines[this.lineNum].staffs[this.staffNum].stem = [];
         }
 
         // These elements should not be added twice, so if the element exists on this line without a note or bar before it, just replace the staff version.
@@ -589,8 +783,7 @@ window.ABCXJS.data.Tune = function() {
         for (var i = 0; i < voice.length; i++) {
             if (voice[i].el_type === 'note' || voice[i].el_type === 'bar') {
                 hashParams.el_type = type;
-                hashParams.startChar = startChar;
-                hashParams.endChar = endChar;
+                this.addPosition(line, startChar, endChar, hashParams);
                 if (impliedNaturals)
                     hashParams.accidentals = impliedNaturals.concat(hashParams.accidentals);
                 voice.push(hashParams);
@@ -598,8 +791,7 @@ window.ABCXJS.data.Tune = function() {
             }
             if (voice[i].el_type === type) {
                 hashParams.el_type = type;
-                hashParams.startChar = startChar;
-                hashParams.endChar = endChar;
+                this.addPosition(line, startChar, endChar, hashParams);
                 if (impliedNaturals)
                     hashParams.accidentals = impliedNaturals.concat(hashParams.accidentals);
                 voice[i] = hashParams;
@@ -663,43 +855,38 @@ window.ABCXJS.data.Tune = function() {
     };
 
     this.startNewLine = function(params) {
-        // If the pointed to line doesn't exist, just create that. If the line does exist, but doesn't have any music on it, just use it.
-        // If it does exist and has music, then increment the line number. If the new element doesn't exist, create it.
+        // If the pointed to line doesn't exist, just create that. 
+        // If the line does exist, but doesn't have any music on it, just use it.
+        // If it does exist and has music, then increment the line number. 
+        // If the new element doesn't exist, create it.
         var This = this;
         this.closeLine();	// Close the previous line.
         var createVoice = function(params) {
             This.lines[This.lineNum].staffs[This.staffNum].voices[This.voiceNum] = [];
             if (This.isFirstLine(This.lineNum)) {
+                
+                if (params.stem) 
+                    This.lines[This.lineNum].staffs[This.staffNum].stem[This.voiceNum] = params.stem;
+                
                 if (params.name) {
                     if (!This.lines[This.lineNum].staffs[This.staffNum].title)
                         This.lines[This.lineNum].staffs[This.staffNum].title = [];
                     This.lines[This.lineNum].staffs[This.staffNum].title[This.voiceNum] = params.name;
                 }
             } else {
+                
+                This.lines[This.lineNum].staffs[This.staffNum].stem[This.voiceNum] = This.lines[0].staffs[This.staffNum].stem[This.voiceNum];
+                
                 if (params.subname) {
                     if (!This.lines[This.lineNum].staffs[This.staffNum].title)
                         This.lines[This.lineNum].staffs[This.staffNum].title = [];
                     This.lines[This.lineNum].staffs[This.staffNum].title[This.voiceNum] = params.subname;
                 }
             }
+            
             if (params.style)
                 This.appendElement('style', null, null, null, {head: params.style});
-            if (params.stem)
-                This.appendElement('stem', null, null, null, {direction: params.stem});
-            else if (This.voiceNum > 0) {
-                if (This.lines[This.lineNum].staffs[This.staffNum].voices[0] !== undefined) {
-                    var found = false;
-                    for (var i = 0; i < This.lines[This.lineNum].staffs[This.staffNum].voices[0].length; i++) {
-                        if (This.lines[This.lineNum].staffs[This.staffNum].voices[0].el_type === 'stem')
-                            found = true;
-                    }
-                    if (!found) {
-                        var stem = {el_type: 'stem', direction: 'up'};
-                        This.lines[This.lineNum].staffs[This.staffNum].voices[0].splice(0, 0, stem);
-                    }
-                }
-                This.appendElement('stem', null, null, null, {direction: 'down'});
-            }
+            
             if (params.scale)
                 This.appendElement('scale', null, null, null, {size: params.scale});
         };
@@ -707,7 +894,7 @@ window.ABCXJS.data.Tune = function() {
             if (params.transpose)
                 params.clef.transpose = params.transpose;
             This.lines[This.lineNum].staffs[This.staffNum] =
-                    {voices: [], clef: params.clef, key: params.key, workingClef: params.clef, subtitle: params.subtitle, lyricsRows: 0};
+                    {voices: [], stem: [], clef: params.clef, key: params.key, workingClef: params.clef, subtitle: params.subtitle, lyricsRows: 0};
             if (params.vocalfont)
                 This.lines[This.lineNum].staffs[This.staffNum].vocalfont = params.vocalfont;
             if (params.bracket)
@@ -723,7 +910,7 @@ window.ABCXJS.data.Tune = function() {
             // Some stuff just happens for the first voice
             createVoice(params);
             if (params.part)
-                This.appendElement('part', null, params.startChar, params.endChar, {title: params.part});
+                This.appendElement('part', null, null, null, {title: params.part}); // flavio anulou
             if (params.meter !== undefined)
                 This.lines[This.lineNum].staffs[This.staffNum].meter = params.meter;
         };
