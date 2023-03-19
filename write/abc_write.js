@@ -246,29 +246,29 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
          h2 ++;
          extraText2 += "Livro: " + abctune.metaText.book + "\n";
     }    
-    if (abctune.metaText.source) {
-         h2 ++;
-        extraText2+= "Fonte: " + abctune.metaText.source + "\n";
-    }    
     if (abctune.metaText.discography) {
          h2 ++;
         extraText2 += "Discografia: " + abctune.metaText.discography + "\n";
-    }    
-    if (abctune.metaText.notes) {
-         h2 ++;
-        extraText2 += abctune.metaText.notes + "\n";
     }    
     if (abctune.metaText.transcription) {
          h2 ++;
         extraText2 += "Transcrito por " + abctune.metaText.transcription + "\n";
     }    
+    if (abctune.metaText.source) {
+         h2 ++;
+        extraText2+= "Fonte: " + abctune.metaText.source + "\n";
+    }    
+    if (abctune.metaText.notes) {
+         h2 ++;
+        extraText2 += abctune.metaText.notes + "\n";
+    }    
     if (abctune.metaText.history) {
          h2 ++;
         extraText2+= "Histórico: " + abctune.metaText.history + "\n";
     }    
-    
     if(h1> 0) {
-        height = ABCXJS.write.spacing.STEP*3 + h1*1.5*16; 
+        var h = (extraText1.match(/\n/g)||[]).length;
+        height = ABCXJS.write.spacing.STEP*3 + h*1.5*16; 
         if( ( this.pageNumber - ((this.y+height)/this.estimatedPageLength) ) < 0 ) {
            this.skipPage();
         } else {
@@ -279,7 +279,8 @@ ABCXJS.write.Printer.prototype.printTune = function(abctune, options) {
     }
 
     if(h2> 0) {
-        height = ABCXJS.write.spacing.STEP*3 + h2*1.5*16;
+        var h = (extraText2.match(/\n/g)||[]).length;
+        height = ABCXJS.write.spacing.STEP*3 + h*1.5*16;
         if( ( this.pageNumber - ((this.y+height)/this.estimatedPageLength) ) < 0 ) {
            this.skipPage();
         } else {

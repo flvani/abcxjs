@@ -187,6 +187,10 @@ ABCXJS.write.StaffGroupElement.prototype.draw = function(printer, groupNumber) {
             this.voices[i].stave.lowest -=2;
         
         shiftabove = this.calcShiftAbove( this.voices[i] );
+
+        if(groupNumber === 0 && shiftabove < 20 ) {
+            shiftabove = 20;
+        }
         
         if( this.voices[i].duplicate ) {
             
