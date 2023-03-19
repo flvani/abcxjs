@@ -1601,7 +1601,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
 
                         var done = false;
                         while (!done) {
-                            var chordNote = getCoreNote(line, i, {}, false);
+                            var chordNote = getCoreNote(line, i, {}, true); //brokenR: um acorde não pode ter broken rhythm
                             if (chordNote !== null ) { 
                                 if (chordNote.end_beam) {
                                     el.end_beam = true;
