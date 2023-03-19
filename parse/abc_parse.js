@@ -1807,9 +1807,14 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                     }
 
                     if (i === startI) {	// don't know what this is, so ignore it.
-                        if (line.charAt(i) !== ' ' && line.charAt(i) !== '`')
-                            warn("Unknown character ignored", line, i);
-                            //warn("Unknown character ignored (" + line.charCodeAt(i) + ")", line, i);
+                        if (line.charAt(i) !== ' ' && line.charAt(i) !== '`'){
+                            if (line.charAt(i) === '$') {
+                                // silenciosamente ignora o $ (linebreak)
+                                //warn("Character ignored", line, i);
+                            } else{
+                                warn("Unknown character ignored", line, i);
+                            }
+                        }
                         i++;
                     }
                 }
