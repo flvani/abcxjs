@@ -57,7 +57,7 @@ ABCXJS.tablature.Parse = function (accordion, str, vars) {
     this.variantSyms = "¹²³";
     this.belSyms = "+-";
     this.barSyms = ":]|[";
-    this.accSyms = "♭♯m"; // neste caso, "m" representa o acorde-baixo-menor
+    this.accSyms = "♭♯m7"; // neste caso, "m" representa o acorde-baixo-menor
     this.i = 0;
     this.xi = 0;
     this.offset = 8.9;
@@ -389,6 +389,14 @@ ABCXJS.tablature.Parse.prototype.getBassNote = function () {
     } else {
         note = this.line.charAt(this.i);
         this.i++;
+        if (this.accSyms.indexOf(this.line.charAt(this.i)) >= 0) {
+            note += this.line.charAt(this.i);
+            this.i++;
+        }
+        if (this.accSyms.indexOf(this.line.charAt(this.i)) >= 0) {
+            note += this.line.charAt(this.i);
+            this.i++;
+        }
         if (this.accSyms.indexOf(this.line.charAt(this.i)) >= 0) {
             note += this.line.charAt(this.i);
             this.i++;

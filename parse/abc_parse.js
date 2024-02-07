@@ -1829,9 +1829,17 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
             if (multilineVars.clef && multilineVars.clef.type === "accordionTab") {
                 //var startOfLine = this.getMultilineVars().iChar;
                 if (this.accordion) {
+                    var deletada = false;
                     if( this.transposer && this.transposer.offSet !== 0) {
-                        this.transposer.deleteTabLine(lineNumber);
-                    } else {
+                        if( false /* se true o comportamento será eliminar a tablatura para que uma nova seja inferida */ ) {
+                            this.transposer.deleteTabLine(lineNumber);
+                            deletada = true;
+                        } else {
+                            /* senao o comportamento será transpor os baixos, sem alterar a tablatura */
+                            ret.str = this.transposer.transposeTabVoiceLine(line, lineNumber, multilineVars);
+                        }
+                    } 
+                    if(!deletada) {
                         var voice = this.accordion.parseTabVoice(ret.str, this.getMultilineVars(), this.getTune());
                         if (voice.length > 0) {
                             startNewLine();

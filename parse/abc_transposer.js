@@ -75,6 +75,113 @@ window.ABCXJS.parse.Transposer.prototype.numberToStaff = function(number, newKac
     return s;
 };
 
+window.ABCXJS.parse.Transposer.prototype.transposeNote = function(xi, size )
+{
+    //  transpor uma abcNote, retornar a nova abcNote transposta
+    var abcNote = this.workingLine.substr(xi, size);
+    var newAbcNote = this.dotransposeABCNote(abcNote);
+
+    this.updateWorkingLine( newAbcNote, xi, size );
+    
+    return newAbcNote;
+}
+
+window.ABCXJS.parse.Transposer.prototype.transposeTabNote = function(xi, size) {
+    // converter uma bass tabnote para uma abcnote e transpor, retornar a tabnote transposta
+    var tabNote = this.workingLine.substr(xi, size);
+
+    var accSyms = "♭♯"
+    var accABCSyms = "_^="
+    var otrSyms = "m7¹²³"; 
+    index = 1;
+    var acc = ""
+
+    var abcNote = tabNote.charAt(0); //assumo de o primeiro caracter de uma tabnote seja sempre uma abcnote;
+
+    while (index < tabNote.length) { // procuro o tab acidente 
+        if( accSyms.indexOf( tabNote.charAt(index) ) >= 0 ) {
+            acc = accABCSyms.charAt(accSyms.indexOf( tabNote.charAt(index) ) )
+            abcNote = acc + abcNote;
+        }
+        ++index;
+    }
+
+    var newAbcNote = this.dotransposeABCNote(abcNote);
+
+    // converto a newAbcNote em newTabNote
+    p = accABCSyms.indexOf( newAbcNote.charAt(0) );
+    acc = accSyms.charAt( p );
+    var newTabNote = newAbcNote.charAt( p>1? 1 : acc.length) + acc; // p > 1 é o bequadro... não aplico na tablt.
+
+    index = 0;
+    while (index < tabNote.length) {
+        if( otrSyms.indexOf( tabNote.charAt(index) ) >= 0 ) {
+            newTabNote = newTabNote + tabNote.charAt(index)
+        }
+        ++index;
+    }
+
+    this.updateWorkingLine( newTabNote, xi, size );
+
+    return newTabNote;
+
+}
+
+
+window.ABCXJS.parse.Transposer.prototype.transposeTabVoiceLine = function(line, lineNumber, multilineVars) {
+    var index = 0;
+    var found = false;
+    var pitSyms = "ABCDEFGabcdefg"; // state 2
+    var belSyms = "+-"
+    
+    this.workingLine = line;
+    this.vars = multilineVars;
+    this.isBass = (this.vars.currentVoice.clef.type==='bass') || false;
+    this.isChord = false;
+    this.workingLineIdx = this.changedLines.length;
+    this.changedLines[ this.workingLineIdx ] = { line:lineNumber, text: line };
+    this.workingX = 0;
+    this.newX =0;
+    this.baraccidentals = [];
+    this.baraccidentalsNew = [];
+    
+    while (index < line.length) {
+        found = false;
+        nota = "";
+        while (index < line.length && !found && line.charAt(index) !== '%') {
+            
+            if(pitSyms.indexOf(line.charAt(index)) >= 0){
+                xi = index;
+                while (index < line.length && !found && line.charAt(index) !== '%') {
+                    if(belSyms.indexOf(line.charAt(index)) < 0){
+                        index++;
+                    } else {
+                        found = true;
+                    }
+                }
+            } else {
+               index++;
+            }
+            
+            if ( found ) {
+                this.transposeTabNote(xi, index - xi);
+                var xi = -1;
+            }
+        }    
+        
+        if(line.charAt(index) === '%' ){
+            index = line.length;
+        }
+
+        if(!found && xi > -1 ) {
+            //some sort of caca
+        }
+      
+    }
+    return this.changedLines[ this.workingLineIdx ].text;
+};
+
+
 window.ABCXJS.parse.Transposer.prototype.transposeRegularMusicLine = function(line, lineNumber, multilineVars) {
 
     var index = 0;
@@ -224,9 +331,8 @@ window.ABCXJS.parse.Transposer.prototype.transposeChord = function ( xi, size ) 
     //this.workingLine = this.workingLine.substr(0, xi) + cNewKey + this.workingLine.substr(xi+size);
 };
 
-window.ABCXJS.parse.Transposer.prototype.transposeNote = function(xi, size )
+window.ABCXJS.parse.Transposer.prototype.dotransposeABCNote = function(abcNote)
 {
-    var abcNote = this.workingLine.substr(xi, size);
     var elem = this.makeElem(abcNote);
     var pitch = elem.pitch;
     var oct = this.extractStaffOctave(pitch);
@@ -307,8 +413,11 @@ window.ABCXJS.parse.Transposer.prototype.transposeNote = function(xi, size )
     var key = this.numberToKey(this.staffNoteToCromatic(this.extractStaffNote(pitch)), this.offSet);
     txtAcc = newElem.accidental;
     abcNote = this.getAbcNote(key, txtAcc, oct);
-    this.updateWorkingLine( abcNote, xi, size/*, abcNote.length */);
-    return newElem;
+
+    //antes retornava o novo elemento ABC, agora retorna o texto ABC... 
+    //verificar se há alguma chamada que utilizada o retorno do elemento.
+    return abcNote;
+
 };
 
 window.ABCXJS.parse.Transposer.prototype.updateWorkingLine = function( newText, xi, size/*, newSize*/ ) {

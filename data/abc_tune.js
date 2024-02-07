@@ -129,7 +129,7 @@ window.ABCXJS.data.Tune = function() {
         if (!this.formatting.staffsep)              this.formatting.staffsep = ss;
         if (!this.formatting.barsperstaff)          this.formatting.barsperstaff = vars.barsperstaff;
         if (!this.formatting.staffwidth)            this.formatting.staffwidth = this.formatting.usablewidth;
-        if (!this.formatting.tabInferenceOpts )     this.formatting.tabInferenceOpts = +1.0 ;
+        if (!this.formatting.tabInferenceOpts )     this.formatting.tabInferenceOpts = +1;
         if (!this.formatting.restsInTab )           this.formatting.restsInTab = false;
 
         //aqui temos diretivas que também serão opções de tela. 

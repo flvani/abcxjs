@@ -34,9 +34,11 @@ ABCXJS.tablature.Infer = function( accordion, tune, vars ) {
     // em geral o count=1 equivale ao tempo de um compasso.
     // não esta no reset para que entre as linhas o contador seja mantido
     this.count = 0; 
+
+    this.localTabOpts = this.tune.formatting.tabInferenceOpts ? tune.formatting.tabInferenceOpts : 1;
     
     // valor inicial do movimento do fole
-    this.closing = this.tune.formatting.tabInferenceOpts > 0 ? true : false;
+    this.closing = this.localTabOpts > 0 ? true : false;
 
     // limite para inversão o movimento do fole - baseado no tempo de um compasso
     if( this.tune.lines &&
@@ -50,7 +52,7 @@ ABCXJS.tablature.Infer = function( accordion, tune, vars ) {
     }
     
     // por default inverte o fole a cada compasso. pode ser modificado pela diretiva.
-    this.limit = this.limit * Math.abs(this.tune.formatting.tabInferenceOpts);
+    this.limit = this.limit * Math.abs(this.localTabOpts);
     
     this.reset();
     
