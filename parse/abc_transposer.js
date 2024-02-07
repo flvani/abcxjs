@@ -127,7 +127,6 @@ window.ABCXJS.parse.Transposer.prototype.transposeTabNote = function(xi, size) {
 
 }
 
-
 window.ABCXJS.parse.Transposer.prototype.transposeTabVoiceLine = function(line, lineNumber, multilineVars) {
     var index = 0;
     var found = false;
