@@ -211,7 +211,7 @@ ABCXJS.Editor = function (params) {
             if (params.accordionSelector_id) {
                 this.accordionSelector = new ABCXJS.edit.AccordionSelector( 
                         'sel1', params.accordionSelector_id, 
-                        { listener:this, method: 'studioCallback', label:"Gaititas" }, 
+                        { listener:this, method: 'studioCallback'/*, label:"Gaititas"*/ }, 
                         [
                             '---',
                             'Salvar mapa corrente|SAVEMAP',
