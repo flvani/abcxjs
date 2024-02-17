@@ -195,7 +195,7 @@ DIATONIC.map.Keyboard.prototype.print = function (div, render_opts, translator) 
     this.divs.extras.setAttribute("display", 'none' );
     this.divs.container.appendChild(this.divs.extras);
 
-    this.paper = new SVG.Printer(keyboardPane);
+    this.paper = new SVG.Printer(this.divs.pane);
     this.paper.initDoc('keyb', 'Diatonic Map Keyboard', estilo, render_opts);
     this.paper.initPage(render_opts.scale);
 
