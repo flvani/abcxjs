@@ -178,7 +178,20 @@ DIATONIC.map.Keyboard.prototype.print = function (div, render_opts, translator) 
     keyboardPane.setAttribute("id", 'keyboardPaneDiv');
     keyboardPane.setAttribute("class", 'keyboardPane');
     div.innerHTML = "";
+
     div.appendChild(keyboardPane);
+
+    // as próximas 2 divs foram criadas para uso futuro 
+    this.keyboardPane.imagem  = document.createElement("div");
+    this.keyboardPane.imagem.setAttribute("id", 'keyboardImagemDiv' );
+    this.keyboardPane.imagem.setAttribute("display", 'none' );
+    this.keyboardPane.appendChild(this.keyboardPaneimagem);
+
+    this.keyboardPane.extras = document.createElement("div");
+    this.keyboardPane.extras.setAttribute("id", 'keyboardExtrasBtnDiv' );
+    this.keyboardPane.extras.setAttribute("display", 'none' );
+    this.keyboardPane.appendChild(this.keyboardPane.extras);
+
 
     this.paper = new SVG.Printer(keyboardPane);
     this.paper.initDoc('keyb', 'Diatonic Map Keyboard', estilo, render_opts);
