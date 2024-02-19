@@ -161,7 +161,6 @@ DIATONIC.map.Keyboard.prototype.print = function (div, accordion) {
         position: absolute;\n\
         display: none;\n\
         border-radius: 50%;\n\
-        z-index: -10;\n\
         background: rgba(100, 100, 100, 0.5);\n\
         box-shadow: 0 0 15px 15px rgba(100, 100, 100, 0.5);\n\
         height: 80px;\n\
@@ -398,7 +397,7 @@ DIATONIC.map.Keyboard.prototype.getLayout = function (r) {
     return this.layout[r] || 0;
 };
 
-DIATONIC.map.Keyboard.prototype.showImage = function (show) {
+DIATONIC.map.Keyboard.prototype.showImagem = function (show) {
     this.divs.imagem.style.display = show? 'block' : 'none';
 };
 
