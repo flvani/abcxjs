@@ -176,32 +176,12 @@ DIATONIC.map.Keyboard.prototype.print = function (div, render_opts, translator) 
 
     //  text-shadow: 0.5px 0.5px #ddd, -0.5px -0.5px 0 #ddd, 0.5px -0.5px 0 #ddd, -0.5px 0.5px 0 #ddd;\n\
 
+    var keyboardPane = document.createElement("div");
+    keyboardPane.setAttribute("class", 'keyboardPane');
+    div.innerHTML = "";
+    div.appendChild(keyboardPane);
 
-    if( this.divs.pane ) { // o teclado já foi impresso pelo menos uma vez
-        this.divs.pane.innerHTML = "";
-        // por padrão as divs imagem e extras não serão apagadas
-    } else {
-        div.innerHTML = "";
-        this.divs.container = div;
-    
-        this.divs.pane  = document.createElement("div");
-        this.divs.pane.setAttribute("id", 'keyboardPaneDiv');
-        this.divs.pane.setAttribute("class", 'keyboardPane');
-        this.divs.container.appendChild(this.divs.pane);
-    
-        // as próximas 2 divs foram criadas para uso futuro 
-        this.divs.imagem  = document.createElement("div");
-        this.divs.imagem.setAttribute("id", 'keyboardImagemDiv' );
-        this.divs.imagem.setAttribute("display", 'none' );
-        this.divs.container.appendChild(this.divs.imagem);
-    
-        this.divs.extras = document.createElement("div");
-        this.divs.extras.setAttribute("id", 'keyboardExtrasBtnDiv' );
-        this.divs.extras.setAttribute("display", 'none' );
-        this.divs.container.appendChild(this.divs.extras);
-    }
-
-    this.paper = new SVG.Printer(this.divs.pane);
+    this.paper = new SVG.Printer(keyboardPane);
     this.paper.initDoc('keyb', 'Diatonic Map Keyboard', estilo, render_opts);
     this.paper.initPage(render_opts.scale);
 
