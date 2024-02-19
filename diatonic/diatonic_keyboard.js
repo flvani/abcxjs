@@ -179,6 +179,8 @@ DIATONIC.map.Keyboard.prototype.print = function (div, render_opts, translator) 
     var keyboardPane = document.createElement("div");
     keyboardPane.setAttribute("class", 'keyboardPane');
     div.innerHTML = "";
+    this.divs.container = div;
+
     div.appendChild(keyboardPane);
 
     this.paper = new SVG.Printer(keyboardPane);
