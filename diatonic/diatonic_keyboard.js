@@ -177,10 +177,11 @@ DIATONIC.map.Keyboard.prototype.print = function (div, render_opts, translator) 
     //  text-shadow: 0.5px 0.5px #ddd, -0.5px -0.5px 0 #ddd, 0.5px -0.5px 0 #ddd, -0.5px 0.5px 0 #ddd;\n\
 
     var keyboardPane = document.createElement("div");
-    this.divs.pane.setAttribute("id", 'keyboardPaneDiv');
+    keyboardPane.setAttribute("id", 'keyboardPaneDiv');
     keyboardPane.setAttribute("class", 'keyboardPane');
     div.innerHTML = "";
     this.divs.container = div;
+    this.divs.pane = keyboardPane;
 
     div.appendChild(keyboardPane);
 
