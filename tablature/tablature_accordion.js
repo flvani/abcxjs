@@ -122,7 +122,7 @@ ABCXJS.tablature.Accordion.prototype.printKeyboard = function(div_id, options) {
 
     if( this.render_opts.show ) {
         div.style.display="inline-block";
-        this.loadedKeyboard.print(div,this.render_opts, this.translator);
+        this.loadedKeyboard.print(div,this);
     } else {
         div.style.display="none";
     }
