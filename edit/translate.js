@@ -130,6 +130,9 @@ SITE.Translator.prototype.sortLanguages = function () {
 
 SITE.Translator.prototype.log = function(msg) {
     if( msg.substr( 27, 6 ) === 'GAITA_' ) return;
+    console.log( msg );
+    /*
     waterbug.log( msg );
     (SITE.properties.options.showConsole) && waterbug.show();
+    */
 };

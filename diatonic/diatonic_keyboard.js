@@ -350,6 +350,10 @@ DIATONIC.map.Keyboard.prototype.print = function (div, accordion) {
     this.paper.endPage(sz);
     this.paper.endDoc();
 
+    //substraia 8 devido o padding da classe keyboardpane
+    this.divs.pane.style.height = this.divs.pane.clientHeight - 8 + "px";
+    this.divs.container.style.height = this.divs.pane.clientHeight + "px"; 
+
     //binds SVG elements
     this.legenda.setSVG(render_opts.label, { pull: 'Pull', push: 'Push', translator: translator });
     for (var j = 0; j < this.keyMap.length; j++) {
