@@ -21,8 +21,7 @@ DIATONIC.map.Keyboard = function (keyMap, pedalInfo, opts) {
     this.legenda = {};
     this.baseLine = {}; // linha decorativa
     this.opts = opts || {};
-    this.divs = { container: null, pane: null, imagem: null, extras: null}
-
+    this.divs = { container: null, pane: null, imagem: null, extras: null, rotateBtnExtra: null, globeBtnExtra: null, openBtnRight: null}
 
     // gaitas que terao a opcao para tablatura numerica portuguesa
     this.numerica = keyMap.numerica || null;
@@ -209,6 +208,7 @@ DIATONIC.map.Keyboard.prototype.print = function (div, accordion) {
         color: #ff9922;\n\
         color: red;\n\
         background-color: transparent;\n\
+        border-radius: 50%;\n\
     }\n\
     .keyboard-extras button:hover {\n\
         height: 44px;\n\
@@ -263,8 +263,13 @@ DIATONIC.map.Keyboard.prototype.print = function (div, accordion) {
 
     this.divs.extras.innerHTML = 
        '<button id="rotateBtnExtra" data-translate="rotate" ><i class="ico-rotate" ></i></button>\
-        <button id="globeBtnExtra"  data-translate="globe" ><i class="ico-world" ></i></button>'
+        <button id="globeBtnExtra"  data-translate="globe" ><i class="ico-world" ></i></button>\
+        <button id="openBtnRight"  data-translate="PrefsPropsCKkeyboardAlignRight" style="display:none;"><i class="ico-open-right"></i></button>'
     this.divs.extras.style.scale = render_opts.scale;
+
+    this.divs.rotateBtnExtra = document.getElementById("rotateBtnExtra");
+    this.divs.globeBtnExtra = document.getElementById("globeBtnExtra");
+    this.divs.openBtnRight = document.getElementById("openBtnRight");
 
     this.paper = new    SVG.Printer(keyboardPane);
     this.paper.initDoc('keyb', 'Diatonic Map Keyboard', estilo, render_opts);
@@ -407,6 +412,10 @@ DIATONIC.map.Keyboard.prototype.showImagem = function (show) {
 
 DIATONIC.map.Keyboard.prototype.showExtras = function (show) {
     this.divs.extras.style.display = show? 'inline' : 'none';
+};
+
+DIATONIC.map.Keyboard.prototype.showExtrasOpen = function (show) {
+    this.divs.openBtnRight.style.display = show? 'block' : 'none';
 };
 
 
