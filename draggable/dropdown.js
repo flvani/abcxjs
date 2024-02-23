@@ -549,7 +549,7 @@ DRAGGABLE.ui.DropdownMenu.prototype.addAction = function( ddm, action, div, self
        self.startY = e.changedTouches[0].pageY;
        self.moved = false;
        div.addEventListener( 'touchmove', swiping, false );
-       e.preventDefault(); 
+       //e.preventDefault(); 
        e.stopPropagation(); 
     }, {passive:true});
     
