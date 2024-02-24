@@ -191,8 +191,8 @@ ABCXJS.Editor = function (params) {
     
     this.resize();
 
-    this.globalPautaNumerica     = 1
-    this.globalPautaNumericaMini = true;
+    this.globalPautaNumerica     = 2    
+    this.globalPautaNumericaMini = false;
     this.globalHideLyrics        = false;
     this.globalHideFingering     = false;
     this.globalIlheirasNumeradas = true;
