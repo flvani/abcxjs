@@ -191,22 +191,24 @@ ABCXJS.Editor = function (params) {
     
     this.resize();
 
-    this.globalPautaNumerica     = 2    
+    this.globalPautaNumerica     = 0    
     this.globalPautaNumericaMini = false;
+    this.globalIlheirasNumeradas = false;
+
     this.globalHideLyrics        = false;
     this.globalHideFingering     = false;
-    this.globalIlheirasNumeradas = true;
 
     this.parserparams.hideLyrics = this.globalhideLyrics ;
     this.parserparams.hideFingering = this.globalHideFingering ;
-    this.parserparams.ilheirasNumeradas = this.globalIlheirasNumeradas ;
-        
+
+    SITE.properties.options.rowsNumbered  = this.globalIlheirasNumeradas ;
+
     if (params.refreshController_id)
         this.refreshController = document.getElementById(params.refreshController_id );
 
     if (params.generate_tablature) {
         if (params.generate_tablature === 'accordion') {
-            this.accordion = new ABCXJS.tablature.Accordion(params.accordion_options, this.globalPautaNumerica, this.globalPautaNumericaMini );
+            this.accordion = new ABCXJS.tablature.Accordion(params.accordion_options, this.globalPautaNumerica, this.globalPautaNumericaMini, this.globalIlheirasNumeradas );
 
             if (params.accordionSelector_id) {
                 this.accordionSelector = new ABCXJS.edit.AccordionSelector( 
@@ -263,8 +265,8 @@ ABCXJS.Editor = function (params) {
     switchSourceButton = document.getElementById("switch_source");
     cpt = document.getElementById("currentPlayTimeLabel");
 
-
-
+    tabFormatBtn = document.getElementById("buttonTabFormat");
+    
 
     switchSourceButton.addEventListener("click", function () {
         self.showingABC =  ! self.showingABC;
@@ -292,6 +294,58 @@ ABCXJS.Editor = function (params) {
         document.getElementById("editorDiv").style.display = "inline";
         //document.getElementById("keyboardDiv").style.display = kd;
     }, false);
+
+    tabFormatBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+
+       if( this.currentTabF  === undefined ) {
+            this.currentTabF = 1
+        } 
+
+        switch(this.currentTabF) {
+            case 0: // alemã - ilheiras com apóstrofes
+                this.currentTabF = 1;
+                SITE.properties.options.tabFormat = 0
+                SITE.properties.options.rowsNumbered = false;
+                SITE.properties.options.tabShowOnlyNumbers= true;
+                break;
+            case 1: // alemã - ilheiras numeradas
+                this.currentTabF = 2;
+                SITE.properties.options.tabFormat = 0
+                SITE.properties.options.rowsNumbered = true;
+                break;
+            case 2: // numerica continua
+                this.currentTabF = 3;
+                SITE.properties.options.tabFormat = 1
+                SITE.properties.options.tabShowOnlyNumbers= false;
+                SITE.properties.options.rowsNumbered = false;
+                break;
+            case 3: // numerica continua - somente números
+                this.currentTabF = 4;
+                SITE.properties.options.tabFormat = 1
+                SITE.properties.options.tabShowOnlyNumbers= true;
+                break;
+            case 4: // numerica ciclica
+                this.currentTabF = 5;
+                SITE.properties.options.tabShowOnlyNumbers= false;
+                SITE.properties.options.tabFormat = 2
+                break;
+            case 5: // numerica ciclica - somente números
+                this.currentTabF = 0;
+                SITE.properties.options.tabShowOnlyNumbers= true;
+                SITE.properties.options.tabFormat = 2
+                break;
+        }
+        
+        self.accordion.setFormatoTab(SITE.properties.options.tabFormat,!SITE.properties.options.tabShowOnlyNumbers,SITE.properties.options.rowsNumbered)
+        self.accordion.loadedKeyboard.reprint();
+        //that.setExtras();
+        //that.setRight();
+        //that.showKeyboard(SITE.properties.studio.keyboard.visible);
+        self.fireChanged(0, {force:true, showProgress:true } );
+
+    }, false);
+
 
     playButton.addEventListener("click", function (e) {
         e.preventDefault();

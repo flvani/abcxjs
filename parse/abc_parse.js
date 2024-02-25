@@ -2016,9 +2016,10 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                 if(switches.hideFingering !== undefined){
                     multilineVars.hideFingering = switches.hideFingering
                 }
+                /*
                 if(switches.ilheirasNumeradas !== undefined){
                     multilineVars.ilheirasNumeradas = switches.ilheirasNumeradas
-                } 
+                } */
             }
             
             tune.setFormat(multilineVars);

@@ -10,13 +10,14 @@ if (!window.ABCXJS)
 if (!window.ABCXJS.tablature)
 	window.ABCXJS.tablature = {};
 
-ABCXJS.tablature.Accordion = function( params, pautaNumerica, pautaNumericaMini ) {
+ABCXJS.tablature.Accordion = function( params, pautaNumerica, pautaNumericaMini, rowsNumbered ) {
     
     this.loaded        = undefined;
     this.tabLines      = [];
     this.accordions    = params.accordionMaps || [] ;
     this.translator    = params.translator || null;
     this.transposer    = new window.ABCXJS.parse.Transposer();
+    this.rowsNumbered  = rowsNumbered || false;
     this.pautaNumerica = pautaNumerica || 0;
     this.pautaNumericaMini = pautaNumericaMini || (pautaNumericaMini===undefined);
     
@@ -67,7 +68,7 @@ ABCXJS.tablature.Accordion.prototype.loadById = function (id) {
 ABCXJS.tablature.Accordion.prototype.load = function (sel) {
     this.loaded = this.accordions[sel];
     this.loadedKeyboard = this.loaded.keyboard;
-    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,this.pautaNumericaMini)
+    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,this.pautaNumericaMini, this.rowsNumbered)
 
     return this.loaded;
 };
@@ -132,10 +133,11 @@ ABCXJS.tablature.Accordion.prototype.getFormatoTab = function () {
     return this.pautaNumerica;
 };
 
-ABCXJS.tablature.Accordion.prototype.setFormatoTab = function (val,mini) {
+ABCXJS.tablature.Accordion.prototype.setFormatoTab = function (val, mini, rowsNumbered) {
     this.pautaNumerica = val;
-    this.pautaNumericaMini = mini
-    this.loadedKeyboard.setFormatoTab(this.pautaNumerica,mini)
+    this.pautaNumericaMini = mini;
+    this.rowsNumbered = rowsNumbered;
+    this.loadedKeyboard.setFormatoTab(this.pautaNumerica, mini, this.rowsNumbered);
 };
 
 ABCXJS.tablature.Accordion.prototype.getId = function () {
