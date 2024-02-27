@@ -191,9 +191,14 @@ ABCXJS.Editor = function (params) {
     
     this.resize();
 
+    if ( SITE.properties.options.tabFormat === undefined ) SITE.properties.options.tabFormat = 0;
+
+/*
     this.globalPautaNumerica     = 0    
     this.globalPautaNumericaMini = false;
     this.globalIlheirasNumeradas = false;
+    //SITE.properties.options.rowsNumbered  = this.globalIlheirasNumeradas ;
+*/
 
     this.globalHideLyrics        = false;
     this.globalHideFingering     = false;
@@ -201,14 +206,13 @@ ABCXJS.Editor = function (params) {
     this.parserparams.hideLyrics = this.globalhideLyrics ;
     this.parserparams.hideFingering = this.globalHideFingering ;
 
-    SITE.properties.options.rowsNumbered  = this.globalIlheirasNumeradas ;
 
     if (params.refreshController_id)
         this.refreshController = document.getElementById(params.refreshController_id );
 
     if (params.generate_tablature) {
         if (params.generate_tablature === 'accordion') {
-            this.accordion = new ABCXJS.tablature.Accordion(params.accordion_options, this.globalPautaNumerica, this.globalPautaNumericaMini, this.globalIlheirasNumeradas );
+            this.accordion = new ABCXJS.tablature.Accordion(params.accordion_options, SITE.properties.options.tabFormat );
 
             if (params.accordionSelector_id) {
                 this.accordionSelector = new ABCXJS.edit.AccordionSelector( 
@@ -298,46 +302,10 @@ ABCXJS.Editor = function (params) {
     tabFormatBtn.addEventListener("click", function (e) {
         e.preventDefault();
 
-       if( this.currentTabF  === undefined ) {
-            this.currentTabF = 1
-        } 
+        // recicla o formato, incrementando em 1, retorando ao 0 qdo == 5
+        SITE.properties.options.tabFormat = ( (SITE.properties.options.tabFormat+1) % 6 )
 
-        switch(this.currentTabF) {
-            case 0: // alemã - ilheiras com apóstrofes
-                this.currentTabF = 1;
-                SITE.properties.options.tabFormat = 0
-                SITE.properties.options.rowsNumbered = false;
-                SITE.properties.options.tabShowOnlyNumbers= true;
-                break;
-            case 1: // alemã - ilheiras numeradas
-                this.currentTabF = 2;
-                SITE.properties.options.tabFormat = 0
-                SITE.properties.options.rowsNumbered = true;
-                break;
-            case 2: // numerica continua
-                this.currentTabF = 3;
-                SITE.properties.options.tabFormat = 1
-                SITE.properties.options.tabShowOnlyNumbers= false;
-                SITE.properties.options.rowsNumbered = false;
-                break;
-            case 3: // numerica continua - somente números
-                this.currentTabF = 4;
-                SITE.properties.options.tabFormat = 1
-                SITE.properties.options.tabShowOnlyNumbers= true;
-                break;
-            case 4: // numerica ciclica
-                this.currentTabF = 5;
-                SITE.properties.options.tabShowOnlyNumbers= false;
-                SITE.properties.options.tabFormat = 2
-                break;
-            case 5: // numerica ciclica - somente números
-                this.currentTabF = 0;
-                SITE.properties.options.tabShowOnlyNumbers= true;
-                SITE.properties.options.tabFormat = 2
-                break;
-        }
-        
-        self.accordion.setFormatoTab(SITE.properties.options.tabFormat,!SITE.properties.options.tabShowOnlyNumbers,SITE.properties.options.rowsNumbered)
+        self.accordion.setTabFormat(SITE.properties.options.tabFormat)
         self.accordion.loadedKeyboard.reprint();
         //that.setExtras();
         //that.setRight();
