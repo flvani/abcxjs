@@ -1,12 +1,17 @@
 #!/bin/sh
-die () {
-    echo >&2 "$@"
-    exit 1
-}
+#
+#die () {
+#    echo >&2 "$@"
+#    exit 1
+#}
+#
+#[ "$#" -eq 1 ] || die "Call with a version number argument in the form x.yy"
+#echo $ver | grep -E -q '^[1-9]\.[0-9]+$' || die "Version number argument required (x.yy), $ver provided"
 
-[ "$#" -eq 1 ] || die "Call with a version number argument in the form x.yy"
-echo $1 | grep -E -q '^[1-9]\.[0-9]+$' || die "Version number argument required (x.yy), $1 provided"
-echo "Concatenating all files..."
+
+ver=6.42
+
+echo "Concatenating all files... versão $ver"
 
 cat ace/src/ace.js ace/src/mode-abcx.js ace/src/theme-abcx.js > tmp/ace4abcx.js
 
@@ -44,23 +49,23 @@ cat tmp/abcjs-nomidi.js tmp/tablature.js > tmp/abcxjs-nomidi.js
 
 
 echo "Compressing STYLES4ABCX css ..."
-java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/styles4abcx_$1-min.css tmp/styles4abcx.css
+java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/styles4abcx_$ver-min.css tmp/styles4abcx.css
 java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/styles4help-min.css tmp/styles4help.css
 
 echo "Compressing ACE4ABCX lib ..."
-java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/ace4abcx_$1-min.js tmp/ace4abcx.js
+java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/ace4abcx_$ver-min.js tmp/ace4abcx.js
 
 echo "Compressing ABCX lib ..."
-java -jar yuicompressor-2.4.8.jar --line-break 7000 -o bin/abcxjs_$1-min.js tmp/abcxjs.js
+java -jar yuicompressor-2.4.8.jar --line-break 7000 -o bin/abcxjs_$ver-min.js tmp/abcxjs.js
 
 echo "Compressing ABCX help lib ..."
 java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/abcx-help-min.js tmp/abcx-help.js
 
 echo "Compressing diatonic-map lib..."
-java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/diatonic_$1-min.js tmp/diatonic.js
+java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/diatonic_$ver-min.js tmp/diatonic.js
 
 echo "Compressing file manager lib..."
-java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/filemanager_$1-min.js file/filemanager.js
+java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o bin/filemanager_$ver-min.js file/filemanager.js
 
 echo "Compressing file kellycollorpicker lib..."
 java -jar yuicompressor-2.4.8.jar  --line-break 7000 -o jslib/html5kellycolorpicker.min.js jslib/html5kellycolorpicker.js
@@ -79,11 +84,11 @@ cp file/filemanager.js  ../diatonic-map/file/
 cp tmp/styles4abcx.css  ../diatonic-map/css/
 cp tmp/styles4help.css  ../diatonic-map/css/
 
-cp bin/abcxjs_$1-min.js ../diatonic-map/abcxjs/
-cp bin/ace4abcx_$1-min.js ../diatonic-map/ace4abcx/
-cp bin/diatonic_$1-min.js ../diatonic-map/diatonic/
-cp bin/filemanager_$1-min.js ../diatonic-map/file/
-cp bin/styles4abcx_$1-min.css  ../diatonic-map/css/
+cp bin/abcxjs_$ver-min.js ../diatonic-map/abcxjs/
+cp bin/ace4abcx_$ver-min.js ../diatonic-map/ace4abcx/
+cp bin/diatonic_$ver-min.js ../diatonic-map/diatonic/
+cp bin/filemanager_$ver-min.js ../diatonic-map/file/
+cp bin/styles4abcx_$ver-min.css  ../diatonic-map/css/
 cp bin/styles4help-min.css  ../diatonic-map/css/
 
 #echo "Removing temporary files..."

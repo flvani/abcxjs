@@ -229,6 +229,14 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
             var tieCnt = this.tieCnt;
             var startEl = this.aTies.pop();
             if( startEl && startEl.pitches ) {
+                // o parse trouxe todos ties para todas as notas, mesmo que no start haja apenas uma
+                // começo tornando false todos os endTies.
+                if(elem.pitches) { 
+                    elem.pitches.forEach( function( pitch ) { 
+                        pitch.endTie = false;
+                    });
+                }
+                // itera sobre as notas iniciais, criando os ties para sa notas finais (se forem iguais)
                 startEl.pitches.forEach( function( startPitch ) {
                     if(elem.pitches) { 
                         elem.pitches.forEach( function( pitch ) { 
@@ -241,7 +249,10 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                                 startPitch.tie.id_start = tieCnt;
                                 
                                 pitch.tie =  { id_end: tieCnt };
+                                pitch.endTie = true;
                                 tieCnt ++;
+                            } else {
+
                             }
                         });
                     }
