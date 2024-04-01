@@ -17,14 +17,14 @@
 if (!window.ABCXJS)
 	window.ABCXJS = {};
 
-if (!window.ABCXJS.parse)
+if (!window.ABCXJS.math)
 	window.ABCXJS.math = {};
     
 window.ABCXJS.math.isNumber = function (n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 };    
 
-if (!window.ABCXJS.parse)
+if (!window.ABCXJS.misc)
 	window.ABCXJS.misc = {};
     
 window.ABCXJS.misc.isOpera = function() { // Opera 8.0+

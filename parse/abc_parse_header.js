@@ -419,7 +419,7 @@ window.ABCXJS.parse.ParseHeader = function(tokenizer, warn, multilineVars, tune,
 		S: 'source',
 		W: 'unalignedWords',
 		Z: 'transcription',
-                X: 'pieceId'
+		X: 'pieceId'
 	};
 
 	this.parseHeader = function(line, lineNumber ) {

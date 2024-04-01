@@ -936,7 +936,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                         state = 'octave';
                         // At this point we have a valid note. The rest is optional. Set the duration in case we don't get one below
                         if (canHaveBrokenRhythm && multilineVars.next_note_duration !== 0) {
-                            el.duration = multilineVars.next_note_duration;
+                            el.duration = multilineVars.next_note_duration; // flavio: bug BrokenRhythm and chords
                             multilineVars.next_note_duration = 0;
                             durationSetByPreviousNote = true;
                         } else
