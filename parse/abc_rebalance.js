@@ -40,6 +40,10 @@ window.ABCXJS.parse.rebalance = function ( text ) {
     var trebleText =''
     var bassText =''
     var regularLine = true;
+    var liTreble = -1;
+    var lfTreble = -1;
+    var liBass = -1;
+    var lfBass = -1;
 
     for (let index = 0; index < lines.length; index++){
         const element = lines[index];
@@ -60,17 +64,59 @@ window.ABCXJS.parse.rebalance = function ( text ) {
             commentX = commentX === -1? element.length : commentX;
 
             if(inBass) {
+               liBass = liBass === -1? index : liBass;
+               lfBass = index;
                bassText += element.substring(0,commentX);
             } else if( inTreble){
+               liTreble = liTreble === -1? index : liTreble;
+               lfTreble = index;
                trebleText += element.substring(0,commentX);
             }
         }
     }
 
+    var bar = trebleText.match(/[:\]\|[\[]+(?![\]:\[\|])/)
+    var xi = 0;
+    while (bar) {
+        var i = trebleText.indexOf(bar);
+        xi += (i+bar.length);
+        bar = trebleText.substring(xi).match(/[:\]\|[\[]+(?![\]:\[\|])/)
+    }
+
+
+/*
+
+ABCXJS.tablature.Parse.prototype.parseMultiCharToken = function (syms) {
+    while (this.i < this.line.length && syms.indexOf(this.line.charAt(this.i)) >= 0) {
+        this.i++;
+    }
+};
+    this.parseMultiCharToken(this.barSyms);
+
+ this.barSyms = ":]|[";
+
+    var validBars = {
+        "|": "bar_thin"
+        , "||": "bar_thin_thin"
+        , "[|": "bar_thick_thin"
+        , "|]": "bar_thin_thick"
+        , ":|:": "bar_dbl_repeat"
+        , ":||:": "bar_dbl_repeat"
+        , "::": "bar_dbl_repeat"
+        , "|:": "bar_left_repeat"
+        , "||:": "bar_left_repeat"
+        , "[|:": "bar_left_repeat"
+        , ":|": "bar_right_repeat"
+        , ":||": "bar_right_repeat"
+        , ":|]": "bar_right_repeat"
+    };
+
+
     // remove the blank lines at the end.
+
     while( window.ABCXJS.parse.last(lines).length === 0 )	
         lines.pop();
-    
+*/    
     return lines;
     
 };
