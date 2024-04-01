@@ -936,7 +936,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                         state = 'octave';
                         // At this point we have a valid note. The rest is optional. Set the duration in case we don't get one below
                         if (canHaveBrokenRhythm && multilineVars.next_note_duration !== 0) {
-                            el.duration = multilineVars.next_note_duration; // flavio: bug BrokenRhythm and chords
+                            el.duration = multilineVars.next_note_duration; 
                             multilineVars.next_note_duration = 0;
                             durationSetByPreviousNote = true;
                         } else
@@ -1608,8 +1608,7 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                     // handle chords.
                     if (line.charAt(i) === '[') {
                         i++;
-                        var chordDuration = null;
-
+                        var chordDuration = null;    
                         var done = false;
                         while (!done) {
                             var chordNote = getCoreNote(line, i, {}, true); //brokenR: um acorde não pode ter broken rhythm
@@ -1689,8 +1688,9 @@ window.ABCXJS.parse.Parse = function(transposer_, accordion_) {
                                             case '>':
                                             case '<':
                                                 var br2 = getBrokenRhythm(line, i);
-                                                i += br2[0] - 1;	// index gets incremented below, so we'll let that happen
-                                                multilineVars.next_note_duration = br2[2];
+                                                i += br2[0] - 1; // index gets incremented below, so we'll let that happen
+                                                multilineVars.next_note_duration = br2[2] * el.duration;
+                                                //multilineVars.next_note_duration = br2[2]; //bug: acorde antes do broken rhythm
                                                 chordDuration = br2[1];
                                                 break;
                                             case '1':
