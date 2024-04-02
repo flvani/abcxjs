@@ -37,13 +37,14 @@ window.ABCXJS.parse.rebalance = function ( text ) {
     var linebreak ='$'
     var inTreble = false;
     var inBass= false;
-    var trebleText =''
-    var bassText =''
+    var trebleText ='';
+    var bassText ='';
     var regularLine = true;
     var liTreble = -1;
     var lfTreble = -1;
     var liBass = -1;
     var lfBass = -1;
+    var regex = /[:\]\|[\[]+(?![\]:\[\|])/;
 
     for (let index = 0; index < lines.length; index++){
         const element = lines[index];
@@ -64,10 +65,12 @@ window.ABCXJS.parse.rebalance = function ( text ) {
             commentX = commentX === -1? element.length : commentX;
 
             if(inBass) {
-               liBass = liBass === -1? index : liBass;
+               var liBass =  index;
+               //liBass = liBass === -1? index : liBass;
                lfBass = index;
                bassText += element.substring(0,commentX);
-            } else if( inTreble){
+            } 
+            if( inTreble){
                liTreble = liTreble === -1? index : liTreble;
                lfTreble = index;
                trebleText += element.substring(0,commentX);
@@ -75,48 +78,46 @@ window.ABCXJS.parse.rebalance = function ( text ) {
         }
     }
 
-    var bar = trebleText.match(/[:\]\|[\[]+(?![\]:\[\|])/)
-    var xi = 0;
-    while (bar) {
-        var i = trebleText.indexOf(bar);
-        xi += (i+bar.length);
-        bar = trebleText.substring(xi).match(/[:\]\|[\[]+(?![\]:\[\|])/)
+    var split = function( text, regex, maxbars ) {
+        var xi = 0;
+        var x0 = 0;
+        var x1 = 0;
+        var cnt = 0;
+        var newLines = [];
+        var bar = text.substring(xi).match(regex);
+        while (bar) {
+            bar = text.substring(xi).match(regex);
+            if(bar) {
+               xi += (bar.index+bar[0].length);
+               if( bar[0] !== '[' && bar[0] !== ']' && bar[0] !== ']['){
+                    //somente conta se for uma barra válida - melhorar a expresão de procura
+                    cnt += 1;
+               }
+            } else {
+                // força a saida
+                xi = text.length;
+                cnt = maxbars;
+            }
+            if ( cnt === maxbars ) {
+                cnt = 0;
+                x1 = xi;
+                newLines.push( text.substring(x0, x1) )
+                x0=x1;
+            }
+        }
+        return newLines;
     }
 
+    var newTrebleLines = split( trebleText, regex, barsperstaff );
+    var newBassLines = split( bassText, regex, barsperstaff );
 
-/*
-
-ABCXJS.tablature.Parse.prototype.parseMultiCharToken = function (syms) {
-    while (this.i < this.line.length && syms.indexOf(this.line.charAt(this.i)) >= 0) {
-        this.i++;
-    }
-};
-    this.parseMultiCharToken(this.barSyms);
-
- this.barSyms = ":]|[";
-
-    var validBars = {
-        "|": "bar_thin"
-        , "||": "bar_thin_thin"
-        , "[|": "bar_thick_thin"
-        , "|]": "bar_thin_thick"
-        , ":|:": "bar_dbl_repeat"
-        , ":||:": "bar_dbl_repeat"
-        , "::": "bar_dbl_repeat"
-        , "|:": "bar_left_repeat"
-        , "||:": "bar_left_repeat"
-        , "[|:": "bar_left_repeat"
-        , ":|": "bar_right_repeat"
-        , ":||": "bar_right_repeat"
-        , ":|]": "bar_right_repeat"
-    };
-
-
-    // remove the blank lines at the end.
-
-    while( window.ABCXJS.parse.last(lines).length === 0 )	
-        lines.pop();
-*/    
+    // Interrompe A em n1 e insere elementos de B
+    var nl = lines.splice(0, liTreble)
+                .concat(newTrebleLines)
+                .concat( lines.splice(lfTreble,liBass) )
+                .concat(newBassLines)
+                .concat( lines.splice(lfBass ) );
+    
     return lines;
     
 };
