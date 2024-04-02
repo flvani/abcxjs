@@ -15,7 +15,18 @@ if (!window.ABCXJS.parse)
 	window.ABCXJS.parse = {};
     
 window.ABCXJS.parse.rebalance = function ( text ) {
+
+    alert( 'A função rebalance é experimental!\n' +
+            'O objetivo é alinhar a quantidade de compassos de\n' +
+            'melodia e baixos por linha.\n' +
+            'Por hora, a diretiva %%barsperstaff é considerada\n' + 
+            'e, na sua ausência, são distribuídos 6 compassos por linha.\n' + 
+            'Linebreaks são ignorados.\n' + 
+            'Espera-se que as vozes V:1 e V:2 bass sejam bem definidas.'
+        );
+
     var strTune = text;
+
     // Take care of whatever line endings come our way
     strTune = window.ABCXJS.parse.gsub(strTune, '\r\n', '\n');
     strTune = window.ABCXJS.parse.gsub(strTune, '\r', '\n');
@@ -59,14 +70,19 @@ window.ABCXJS.parse.rebalance = function ( text ) {
             // antes de continuar, verificar se V inline
             continue;
         }
+        if (element.includes('linebreak')){
+            linebreak = element.substring(element.indexOf(' ')+1);
+        }
+        if (element.includes('barsperstaff')){
+            barsperstaff = parseInt( element.substring(element.indexOf(' ')+1));
+        }
         if(regularLine && (inBass || inTreble)){
             var commentX = element.indexOf('%');
 
             commentX = commentX === -1? element.length : commentX;
 
             if(inBass) {
-               var liBass =  index;
-               //liBass = liBass === -1? index : liBass;
+               liBass = liBass === -1? index : liBass;
                lfBass = index;
                bassText += element.substring(0,commentX);
             } 
@@ -111,13 +127,14 @@ window.ABCXJS.parse.rebalance = function ( text ) {
     var newTrebleLines = split( trebleText, regex, barsperstaff );
     var newBassLines = split( bassText, regex, barsperstaff );
 
-    // Interrompe A em n1 e insere elementos de B
-    var nl = lines.splice(0, liTreble)
-                .concat(newTrebleLines)
-                .concat( lines.splice(lfTreble,liBass) )
+    var nl = lines.splice(0,liBass)
                 .concat(newBassLines)
-                .concat( lines.splice(lfBass ) );
+                .concat(lines.splice(lfBass-liBass+1));
+
+    nl = nl.splice(0,liTreble)
+           .concat(newTrebleLines)
+           .concat(nl.splice(lfTreble-liTreble+1));
     
-    return lines;
+    return nl.join('\n')
     
 };

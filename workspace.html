@@ -1,31 +1,33 @@
 <html>
-    <head>
-	<title>Draw The Dots: Tune Editor</title>
-        <meta charset="UTF-8" />
-        <link rel="icon" type="image/icon" href="images/favicon.ico"/>
-        <meta name="viewport" content="height=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0" />
-        
-        <link rel="stylesheet" href="fontsIco/fontsAbcx.css" />
-        <link rel="stylesheet" href="fontsGoogle/fontsGoogle.css" />
-        
-        <link rel="stylesheet" href="css/perfect-scrollbar.css">        
-        
-        <link rel="stylesheet" href="css/menu-group.css" />
-        <link rel="stylesheet" href="css/dropdown-menu.css" />
-        <link rel="stylesheet" href="css/tabbed-view.css" />
-        <link rel="stylesheet" href="css/draggable.css" >
-        <link rel="stylesheet" href="css/slider.css" />
-        
-        <link rel="stylesheet" href="css/workspace.css" />
-        
-        
-        <style>
-            ::-webkit-scrollbar { /* for Mac OS X support */
-                width: 0;
-            }
-          </style>        
-        
-            <!-- 
+
+<head>
+    <title>Draw The Dots: Tune Editor</title>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/icon" href="images/favicon.ico" />
+    <meta name="viewport" content="height=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0" />
+
+    <link rel="stylesheet" href="fontsIco/fontsAbcx.css" />
+    <link rel="stylesheet" href="fontsGoogle/fontsGoogle.css" />
+
+    <link rel="stylesheet" href="css/perfect-scrollbar.css">
+
+    <link rel="stylesheet" href="css/menu-group.css" />
+    <link rel="stylesheet" href="css/dropdown-menu.css" />
+    <link rel="stylesheet" href="css/tabbed-view.css" />
+    <link rel="stylesheet" href="css/draggable.css">
+    <link rel="stylesheet" href="css/slider.css" />
+
+    <link rel="stylesheet" href="css/workspace.css" />
+
+
+    <style>
+        ::-webkit-scrollbar {
+            /* for Mac OS X support */
+            width: 0;
+        }
+    </style>
+
+    <!-- 
           MAIN DATA STRUCTURES
         
             Tune
@@ -89,78 +91,79 @@
                 promover a inversão do fole se a posição do botao for melhor
         
         -->
-    </head>
-    <body>
+</head>
 
-        <script type="text/javascript" src="proto_noconflict.js" ></script>
-        <!--script type="text/javascript" src="jquery/jquery-1.11.1.min.js" ></script-->
-        <script type="text/javascript" src="jquery/jquery-3.7.1.min.js" ></script>
+<body>
 
-        <!-- color picker -->
-        <script type="text/javascript" src="jslib/html5kellycolorpicker.js"></script>
+    <script type="text/javascript" src="proto_noconflict.js"></script>
+    <!--script type="text/javascript" src="jquery/jquery-1.11.1.min.js" ></script-->
+    <script type="text/javascript" src="jquery/jquery-3.7.1.min.js"></script>
 
-        <script type="text/javascript" src="scroll/perfect-scrollbar.js"></script>
+    <!-- color picker -->
+    <script type="text/javascript" src="jslib/html5kellycolorpicker.js"></script>
 
-        <!-- suporte a MIDI -->
-        <script type="text/javascript" src="jslib/MIDI.js"></script>
+    <script type="text/javascript" src="scroll/perfect-scrollbar.js"></script>
 
-        <script type="text/javascript" src="svg/svg.js" ></script>
-        <script type="text/javascript" src="svg/glyphs.js" ></script>
+    <!-- suporte a MIDI -->
+    <script type="text/javascript" src="jslib/MIDI.js"></script>
 
-        <script type="text/javascript" src="draggable/draggable.js"></script>
-        <script type="text/javascript" src="draggable/dialogs.js"></script>
-        <script type="text/javascript" src="draggable/dropdown.js"></script>
-        <script type="text/javascript" src="draggable/slider.js"></script>
+    <script type="text/javascript" src="svg/svg.js"></script>
+    <script type="text/javascript" src="svg/glyphs.js"></script>
 
-        <script type="text/javascript" src="file/filemanager.js" ></script>
+    <script type="text/javascript" src="draggable/draggable.js"></script>
+    <script type="text/javascript" src="draggable/dialogs.js"></script>
+    <script type="text/javascript" src="draggable/dropdown.js"></script>
+    <script type="text/javascript" src="draggable/slider.js"></script>
 
-        <script type="text/javascript" src="api/abc_tunebook.js" ></script>
+    <script type="text/javascript" src="file/filemanager.js"></script>
 
-        <script type="text/javascript" src="data/abc_tune.js" ></script>
+    <script type="text/javascript" src="api/abc_tunebook.js"></script>
 
-        <script type="text/javascript" src="parse/abc_common.js" ></script>
-        <script type="text/javascript" src="parse/abc_parse_header.js" ></script>
-        <script type="text/javascript" src="parse/abc_tokenizer.js" ></script>
-        <script type="text/javascript" src="parse/abc_parse_key_voice.js" ></script>
-        <script type="text/javascript" src="parse/abc_parse_directive.js" ></script>
-        <script type="text/javascript" src="parse/abc_parse.js" ></script>
-        <script type="text/javascript" src="parse/abc_transposer.js" ></script>
-        <script type="text/javascript" src="parse/abc_rebalance.js" ></script>
+    <script type="text/javascript" src="data/abc_tune.js"></script>
 
-        <script type="text/javascript" src="midi/midi_common.js" ></script>
-        <script type="text/javascript" src="midi/midi_parser.js" ></script>
-        <script type="text/javascript" src="midi/midi_player.js" ></script>
+    <script type="text/javascript" src="parse/abc_common.js"></script>
+    <script type="text/javascript" src="parse/abc_parse_header.js"></script>
+    <script type="text/javascript" src="parse/abc_tokenizer.js"></script>
+    <script type="text/javascript" src="parse/abc_parse_key_voice.js"></script>
+    <script type="text/javascript" src="parse/abc_parse_directive.js"></script>
+    <script type="text/javascript" src="parse/abc_parse.js"></script>
+    <script type="text/javascript" src="parse/abc_transposer.js"></script>
+    <script type="text/javascript" src="parse/abc_rebalance.js"></script>
 
-        <script type="text/javascript" src="write/sprintf.js" ></script>
-        <script type="text/javascript" src="write/abc_glyphs.js" ></script>
-        <script type="text/javascript" src="write/abc_graphelements.js" ></script>
-        <script type="text/javascript" src="write/abc_layout.js" ></script>
-        <script type="text/javascript" src="write/abc_write.js" ></script>
+    <script type="text/javascript" src="midi/midi_common.js"></script>
+    <script type="text/javascript" src="midi/midi_parser.js"></script>
+    <script type="text/javascript" src="midi/midi_player.js"></script>
 
-        <!-- console personalizada para Javascript -->
-        <script type="text/javascript" src="jslib/waterbug.js"></script> 
+    <script type="text/javascript" src="write/sprintf.js"></script>
+    <script type="text/javascript" src="write/abc_glyphs.js"></script>
+    <script type="text/javascript" src="write/abc_graphelements.js"></script>
+    <script type="text/javascript" src="write/abc_layout.js"></script>
+    <script type="text/javascript" src="write/abc_write.js"></script>
 
-        <!-- diatonic accordion map -->
-        <script type="text/javascript" src="diatonic/diatonic_common.js"></script>
-        <script type="text/javascript" src="diatonic/diatonic_accordion_map.js"></script>
-        <script type="text/javascript" src="diatonic/diatonic_keyboard.js"></script>
-        <script type="text/javascript" src="diatonic/diatonic_button.js"></script>
+    <!-- console personalizada para Javascript -->
+    <script type="text/javascript" src="jslib/waterbug.js"></script>
 
-        <!-- support for diatonic accordion tablature -->
-        <script type="text/javascript" src="tablature/tablature_accordion.js"></script>
-        <script type="text/javascript" src="tablature/tablature_accordion_infer.js"></script>
-        <script type="text/javascript" src="tablature/tablature_accordion_parse.js"></script>
-        <script type="text/javascript" src="tablature/tablature_accordion_layout.js"></script>
+    <!-- diatonic accordion map -->
+    <script type="text/javascript" src="diatonic/diatonic_common.js"></script>
+    <script type="text/javascript" src="diatonic/diatonic_accordion_map.js"></script>
+    <script type="text/javascript" src="diatonic/diatonic_keyboard.js"></script>
+    <script type="text/javascript" src="diatonic/diatonic_button.js"></script>
 
-        <script type="text/javascript" src="edit/properties.js" ></script>
-        <script type="text/javascript" src="edit/translate.js" ></script>
+    <!-- support for diatonic accordion tablature -->
+    <script type="text/javascript" src="tablature/tablature_accordion.js"></script>
+    <script type="text/javascript" src="tablature/tablature_accordion_infer.js"></script>
+    <script type="text/javascript" src="tablature/tablature_accordion_parse.js"></script>
+    <script type="text/javascript" src="tablature/tablature_accordion_layout.js"></script>
 
-        <script type="text/javascript" src="edit/abc_selectors.js" ></script>
-        <script type="text/javascript" src="edit/abc_editarea.js" ></script>
-        <script type="text/javascript" src="edit/abc_editor.js" ></script>
+    <script type="text/javascript" src="edit/properties.js"></script>
+    <script type="text/javascript" src="edit/translate.js"></script>
 
-        <script type="text/javascript" src="ace/src/ace.js" ></script>
-        <!--                     menor
+    <script type="text/javascript" src="edit/abc_selectors.js"></script>
+    <script type="text/javascript" src="edit/abc_editarea.js"></script>
+    <script type="text/javascript" src="edit/abc_editor.js"></script>
+
+    <script type="text/javascript" src="ace/src/ace.js"></script>
+    <!--                     menor
             C,,   C,  E,  G,     C,  ^D,  G,
             D,,   D, ^F,  A,     D,   F,  A,
             E,,   E, ^G,  B,     E,   G,  B,
@@ -169,21 +172,22 @@
             A,,   A, ^C   E      A,   C   E
             B,,   B, ^D  ^F      B,   D  ^F
             Bb,,  Bb, D   F      Bb, ^C   F
-        -->    
-    
+        -->
 
-    
-<textarea id="svg_source" class="abc_textarea" spellcheck="false" cols="120" rows="10" style="display: none;" >
+
+
+    <textarea id="svg_source" class="abc_textarea" spellcheck="false" cols="120" rows="10" style="display: none;">
 </textarea>
-    
-<textarea id="abc" class="abc_textarea" spellcheck="false" cols="120" rows="10"  style="display: none;">
+
+    <textarea id="abc" class="abc_textarea" spellcheck="false" cols="120" rows="10" style="display: none;">
 X:1
 T:Title
-%%scale 0.76
+%scale 0.76
 %%pagewidth 21.00cm
 %%leftmargin 1.00cm
 %%rightmargin 1.00cm
 %%score { 1 | 2 }
+%%barsperstaff 4
 L:1/8
 Q:1/4=120
 M:6/8
@@ -236,251 +240,252 @@ V:2 bass
  !fermata!E,,6 |] %62
 </textarea>
 
-<div id="topBar" class="topBar gradiente" >
-    <span class="topTitle">
-        Draw the dots
-        <a id="topSettings" class="topSettings"><i class="ico-cogs" ></i></a>
-    </span>
-    <div class="dropdown-group">
-        <div id="menu1Div" class="topMenu"></div>
-    </div>
-</div> <!-- topBar -->
-<div id="studioDiv" class="studio"> 
-    <div id="editorDiv" class="editor"> 
-    <div id="controlDiv" style="display: none;" >
-        <div class="btn-group" >
-            <div id="menuAcordeonsDiv" class="topMenu" ></div>
-            <div id="menuKeyDiv" class="topMenu" ></div>
-            <button id="button8Up" onclick="javascript:doTranspose(12);" ><i class="ico-octave-up"></i></button>
-            <button id="button8Down" onclick="javascript:doTranspose(-12);" ><i class="ico-octave-down"></i></button>
-            <button id="showMapBtn" ><i class="ico-keyboard"></i>&nbsp;<span >Teclado</span></button>
-            <button id="showEditBtn" ><i class="ico-folder"></i>&nbsp;<span >Editor</span></button>
-            <button id="buttonPrint" ><i class="ico-printer"></i>&nbsp;<span id="DR_print">Imprimir</span></button>
-            <button id="buttonRefresh" onclick="javascript:doForceRefresh();" ><i class="ico-bolt"></i><span id="forceRefresh">Atualizar</span></button>
-            <button id="switch_source" style="display: none;" ><i class="ico-bolt"></i><span id="xx">ABC/SVG</span></button>
-            <button id="buttonTabFormat" ><i class="ico-tabformat"></i></button>
-            <button id="buttonPlay" ><i class="ico-play"></i></button>
-            <button id="buttonPause" ><i class="ico-pause"></i></button>
-            <button id="buttonStop" ><i class="ico-stop"></i></button>
-            <div class="others-group">
-                <label id="currentPlayTimeLabel" class="playtime-label">00:00:00</label>
-                <div id="slider01"></div>
-            </div>
-            <div class="checkbox-group" >
-                <!--input type="text" id="roBt" value="Ir..." />
-                <input type="checkbox" id="chkAutoRefresh" />Auto refresh--> 
-                <input type="checkbox" id="chkDebug" onclick="javascript:doCheckDebug();" />Debug
+    <div id="topBar" class="topBar gradiente">
+        <span class="topTitle">
+            Draw the dots
+            <a id="topSettings" class="topSettings"><i class="ico-cogs"></i></a>
+        </span>
+        <div class="dropdown-group">
+            <div id="menu1Div" class="topMenu"></div>
+        </div>
+    </div> <!-- topBar -->
+    <div id="studioDiv" class="studio">
+        <div id="editorDiv" class="editor">
+            <div id="controlDiv" style="display: none;">
+                <div class="btn-group">
+                    <div id="menuAcordeonsDiv" class="topMenu"></div>
+                    <div id="menuKeyDiv" class="topMenu"></div>
+                    <button id="button8Up" onclick="javascript:doTranspose(12);"><i class="ico-octave-up"></i></button>
+                    <button id="button8Down" onclick="javascript:doTranspose(-12);"><i class="ico-octave-down"></i></button>
+                    <button id="showMapBtn"><i class="ico-keyboard"></i>&nbsp;<span>Teclado</span></button>
+                    <button id="showEditBtn"><i class="ico-folder"></i>&nbsp;<span>Editor</span></button>
+                    <button id="buttonPrint"><i class="ico-printer"></i>&nbsp;<span id="DR_print">Imprimir</span></button>
+                    <button id="buttonRefresh" onclick="javascript:doForceRefresh();"><i class="ico-bolt"></i><span
+                            id="forceRefresh">Atualizar</span></button>
+                    <button id="switch_source" style="display: none;"><i class="ico-bolt"></i><span id="xx">ABC/SVG</span></button>
+                    <button id="buttonTabFormat"><i class="ico-tabformat"></i></button>
+                    <button id="buttonPlay"><i class="ico-play"></i></button>
+                    <button id="buttonPause"><i class="ico-pause"></i></button>
+                    <button id="buttonStop"><i class="ico-stop"></i></button>
+                    <div class="others-group">
+                        <label id="currentPlayTimeLabel" class="playtime-label">00:00:00</label>
+                        <div id="slider01"></div>
+                    </div>
+                    <div class="checkbox-group">
+                        <!--input type="text" id="roBt" value="Ir..." />
+                <input type="checkbox" id="chkAutoRefresh" />Auto refresh-->
+                        <input type="checkbox" id="chkDebug" onclick="javascript:doCheckDebug();" />Debug
+                    </div>
+                </div>
             </div>
         </div>
-        </div>
-</div>
     </div> <!-- editorDiv -->
-</div>        
-        <script type="text/javascript">
+    </div>
+    <script type="text/javascript">
+
+        var myEditor;
+
+        window.addEventListener('load', loadAccordions, false);
+
+        window.onresize = function () {
+            (myEditor) && myEditor.resize();
+        };
+
+        function loadAccordions() {
+
+
+            /*                 var a = new Date().getTime();
+                            console.log("Wait a few seconds, then click OK: " + a );
             
-            var myEditor;
+                            var b = a;
+                            while(b < a + 2000 ) {
+                                b = new Date().getTime();
+                           }
+                            var difference = (b - a) / 1000;
             
-            window.addEventListener('load', loadAccordions, false);
-            
-            window.onresize = function()
-            {
-                (myEditor) && myEditor.resize();
-            };
-            
-            function loadAccordions() {
+                            console.log("You waited: " + difference + " seconds: " + b); */
 
-                
-/*                 var a = new Date().getTime();
-                console.log("Wait a few seconds, then click OK: " + a );
+            console.log(
+                '\nChrome: ' + ABCXJS.misc.isChrome()
+                + '\nCromium: ' + ABCXJS.misc.isChromium()
+                + '\nFirefox: ' + ABCXJS.misc.isFirefox()
+                + '\nOpera: ' + ABCXJS.misc.isOpera()
+                + '\nSafari: ' + ABCXJS.misc.isSafari()
+                + '\nInternet Explorer: ' + ABCXJS.misc.isIE()
+                + '\nEdge: ' + ABCXJS.misc.isEdge() + '\n '
+            );
 
-                var b = a;
-                while(b < a + 2000 ) {
-                    b = new Date().getTime();
-               }
-                var difference = (b - a) / 1000;
+            if (ABCXJS.misc.isIE()) {
+                var alert = new DRAGGABLE.ui.Alert(
+                    null, null,
+                    'Notamos que você está usando o Internet Explorer.',
+                    'Infelizmente, algumas funcionalidades do site não estarão disponíveis para este navegador. Assim, ' +
+                    ' sugerimos que você use, de preferência, os navegadores: ' +
+                    '<ul><li>Chrome (chromium)</li><li>Firefox</li><li>Safari</li><li>MS-Edge</li></ul>');
+                return;
+            }
 
-                console.log("You waited: " + difference + " seconds: " + b); */
+            MIDI.widget = new sketch.ui.Timer({ size: 180, cor1: '#ffffff', cor2: '#ffff88' });
+            MIDI.widget.setFormat('Carregando...');
+            MIDI.widget.setValue(1);
 
-                console.log( 
-                      '\nChrome: ' + ABCXJS.misc.isChrome() 
-                    + '\nCromium: ' + ABCXJS.misc.isChromium() 
-                    + '\nFirefox: ' + ABCXJS.misc.isFirefox()  
-                    + '\nOpera: ' + ABCXJS.misc.isOpera() 
-                    + '\nSafari: ' + ABCXJS.misc.isSafari() 
-                    + '\nInternet Explorer: ' + ABCXJS.misc.isIE() 
-                    + '\nEdge: ' + ABCXJS.misc.isEdge() + '\n '
-                );
-        
-                if( ABCXJS.misc.isIE() ){
-                    var alert = new DRAGGABLE.ui.Alert( 
-                        null, null, 
-                        'Notamos que você está usando o Internet Explorer.',
-                        'Infelizmente, algumas funcionalidades do site não estarão disponíveis para este navegador. Assim, '+
-                                ' sugerimos que você use, de preferência, os navegadores: '+
-                                '<ul><li>Chrome (chromium)</li><li>Firefox</li><li>Safari</li><li>MS-Edge</li></ul>' );
-                    return;
-                }
-                
-                MIDI.widget = new sketch.ui.Timer({size:180, cor1:'#ffffff', cor2:'#ffff88' });
-                MIDI.widget.setFormat( 'Carregando...');
-                MIDI.widget.setValue(1);
-
-                DIATONIC.map.loadAccordionMaps(
-                    [
-                       'accordions/hohner.gc.accordion'
-                      ,'accordions/hohner.cf.club.br.accordion'
-                      ,'accordions/concertina.gcf.portuguesa.accordion'
-                      ,'accordions/hohner.gcf.corona.accordion'
-                    ]
-                    ,{ isApp: true }
-                    , function () { // call back after loading
-                        FILEMANAGER.waitResources( { 
-                            onProgress: function(event) {
-                                if(event.success){
-                                    MIDI.widget.setValue(0+Math.round(event.perc*.1));
-                                    waterbug.log('\nPercentual: '+ event.perc + '\nTimeouts: ' + event.timeouts + '\n' + event.success );
-                                } else {
-                                    MIDI.widget.setValue(0+Math.round(event.perc*.1));
-                                    waterbug.log('\nPercentual: '+ event.perc);
-                                }
+            DIATONIC.map.loadAccordionMaps(
+                [
+                    'accordions/hohner.gc.accordion'
+                    , 'accordions/hohner.cf.club.br.accordion'
+                    , 'accordions/concertina.gcf.portuguesa.accordion'
+                    , 'accordions/hohner.gcf.corona.accordion'
+                ]
+                , { isApp: true }
+                , function () { // call back after loading
+                    FILEMANAGER.waitResources({
+                        onProgress: function (event) {
+                            if (event.success) {
+                                MIDI.widget.setValue(0 + Math.round(event.perc * .1));
+                                waterbug.log('\nPercentual: ' + event.perc + '\nTimeouts: ' + event.timeouts + '\n' + event.success);
+                            } else {
+                                MIDI.widget.setValue(0 + Math.round(event.perc * .1));
+                                waterbug.log('\nPercentual: ' + event.perc);
                             }
-                            ,onLoad: loadMIDI 
-                        });
-                    }
-                );
-            }
-            
-            function loadMIDI() {
-                
-                MIDI.widget.setValue(10);
-                
-                MIDI.loadPlugin({
-                     soundfontUrl: "./soundfont/"
-                    //,instruments: ["accordion", "acoustic_grand_piano" ] 
-                    ,instruments: [ "accordion" ] 
-                    //,instruments: [ "acoustic_grand_piano" ] 
-                ,onprogress: function( total, done, currentPercent ) {
-                    var percent = ((done*100)+currentPercent)*90/(total*100);
-                    MIDI.widget.setValue(10+Math.round(percent));
+                        }
+                        , onLoad: loadMIDI
+                    });
                 }
-                ,callback: preLoad
+            );
+        }
+
+        function loadMIDI() {
+
+            MIDI.widget.setValue(10);
+
+            MIDI.loadPlugin({
+                soundfontUrl: "./soundfont/"
+                //,instruments: ["accordion", "acoustic_grand_piano" ] 
+                , instruments: ["accordion"]
+                //,instruments: [ "acoustic_grand_piano" ] 
+                , onprogress: function (total, done, currentPercent) {
+                    var percent = ((done * 100) + currentPercent) * 90 / (total * 100);
+                    MIDI.widget.setValue(10 + Math.round(percent));
+                }
+                , callback: preLoad
+            });
+        }
+
+
+        function preLoad() {
+
+            var setInstrument = function (piano) {
+                //var instrumentId = 0;//= piano? 0: 21; // accordion
+                var instrumentId = piano ? 0 : 21; // accordion
+                MIDI.programChange(0, instrumentId);
+                MIDI.programChange(1, instrumentId);
+                MIDI.programChange(2, instrumentId);
+                MIDI.programChange(3, instrumentId);
+                MIDI.programChange(4, instrumentId);
+                MIDI.programChange(5, instrumentId);
+                MIDI.programChange(7, 10); // qualquer instrumento não configurado
+
+                //                    try {
+                //                        MIDI.stopAllNotes();
+                //                        MIDI.noteOn(0, 70, 60, 0);
+                //                        MIDI.noteOff(0, 70, 1);
+                //                        waterbug.log("no error"); 
+                //                        waterbug.show(); 
+                //
+                //                    } catch(e) {
+                //                        waterbug.log("error"); 
+                //                        waterbug.show(); 
+                //                    }
+
+            };
+
+            setInstrument();
+
+            SITE.translator = new SITE.Translator({ language: 'pt_BR', callback: initApp });
+            SITE.properties.options.showConsole = true;
+
+        }
+
+        function initApp() {
+
+            ypos = 0;
+            lastYpos = 0;
+            lastStaffGroup = null;
+            debug = false;
+            myEditor = {};
+
+            editorCallbackOnChange = function (editor) {
+                window.scrollTo(0, window.lastYpos);
+            };
+
+
+            myEditor = new ABCXJS.Editor(
+                {
+                    menu_id: "menu1Div"
+                    , studio_id: "studioDiv"
+                    , canvas_id: "canvasDiv"
+                    , control_id: 'controlDiv'
+                    , warnings_id: "warningsDiv"
+                    , generate_warnings: true
+                    , settingsMenu: 'topSettings'
+                    , settingsDiv: 'settingsDiv'
+
+                    , refreshController_id: "chkAutoRefresh"
+                    , keySelector_id: "menuKeyDiv"
+                    , accordionSelector_id: "menuAcordeonsDiv"
+                    , accordionNameSpan: "spanNomeGaita"
+                    , generate_midi: true
+                    , generate_tablature: 'accordion'
+                    , accordion_options: {
+                        id: 'CONCERTINA_PORTUGUESA'
+                        //id: 'GAITA_HOHNER_GC'
+                        //  id: 'GAITA_HOHNER_CLUB_IIIM_BR'
+                        //,keyboardDiv_id:"keyboardDiv"
+                        , accordionMaps: DIATONIC.map.accordionMaps
+                        , render_keyboard_opts: { transpose: false, mirror: true, scale: 1, draggable: false, show: false, label: false }
+                    }
+                    , midi_options: { program: 21, qpm: 150, type: "qt" }
+                    , render_options: {}
+                    , onchange: editorCallbackOnChange
+                    , gui: false
                 });
-            }
-            
-            
-            function preLoad() {
-                
-                var setInstrument = function (piano) {
-                    //var instrumentId = 0;//= piano? 0: 21; // accordion
-                    var instrumentId = piano? 0: 21; // accordion
-                    MIDI.programChange( 0, instrumentId );
-                    MIDI.programChange( 1, instrumentId );
-                    MIDI.programChange( 2, instrumentId );
-                    MIDI.programChange( 3, instrumentId );
-                    MIDI.programChange( 4, instrumentId );
-                    MIDI.programChange( 5, instrumentId );
-                    MIDI.programChange( 7, 10 ); // qualquer instrumento não configurado
-                    
-//                    try {
-//                        MIDI.stopAllNotes();
-//                        MIDI.noteOn(0, 70, 60, 0);
-//                        MIDI.noteOff(0, 70, 1);
-//                        waterbug.log("no error"); 
-//                        waterbug.show(); 
-//
-//                    } catch(e) {
-//                        waterbug.log("error"); 
-//                        waterbug.show(); 
-//                    }
-                    
-                };
-                
-                setInstrument();
-                
-                SITE.translator = new SITE.Translator( { language: 'pt_BR', callback: initApp } );
-                SITE.properties.options.showConsole = true;
-                
-            }
-            
-            function initApp() {
-                
-                ypos = 0;
-                lastYpos = 0;
-                lastStaffGroup = null;
-                debug = false;
-                myEditor = {};
 
-                editorCallbackOnChange = function ( editor ) {
-                    window.scrollTo( 0, window.lastYpos );
-                };
-                
-                
-                myEditor = new ABCXJS.Editor(
-                    {
-                         menu_id: "menu1Div"
-                        ,studio_id: "studioDiv"
-                        ,canvas_id: "canvasDiv"
-                        ,control_id: 'controlDiv'
-                        ,warnings_id: "warningsDiv"
-                        ,generate_warnings: true
-                        ,settingsMenu:'topSettings'
-                        ,settingsDiv: 'settingsDiv'
-                        
-                        ,refreshController_id: "chkAutoRefresh"
-                        ,keySelector_id: "menuKeyDiv"
-                        ,accordionSelector_id: "menuAcordeonsDiv"
-                        ,accordionNameSpan: "spanNomeGaita"
-                        ,generate_midi: true
-                        ,generate_tablature: 'accordion'
-                        ,accordion_options: {
-                                 id: 'CONCERTINA_PORTUGUESA'
-                                 //id: 'GAITA_HOHNER_GC'
-                               //  id: 'GAITA_HOHNER_CLUB_IIIM_BR'
-                                //,keyboardDiv_id:"keyboardDiv"
-                                ,accordionMaps: DIATONIC.map.accordionMaps
-                                ,render_keyboard_opts:{transpose:false, mirror: true, scale:1, draggable:false, show:false, label:false}}
-                        ,midi_options: {program: 21, qpm: 150, type: "qt"}
-                        ,render_options: {}
-                        ,onchange: editorCallbackOnChange
-                        ,gui: false
-                    } );
+            var text = ABCXJS.parse.rebalance(document.getElementById("abc").value);
+            myEditor.setString(text);
+            myEditor.fireChanged(0, { force: true });
 
-                var text = ABCXJS.parse.rebalance(document.getElementById("abc").value );
-                myEditor.setString( document.getElementById("abc").value );
-                myEditor.fireChanged( 0, {force: true} );
+            //myEditor.menu.setSubMenuTitle('menuGaitas', myEditor.menu.selectItem('menuGaitas', 'Acordeon 2' ));
 
-                //myEditor.menu.setSubMenuTitle('menuGaitas', myEditor.menu.selectItem('menuGaitas', 'Acordeon 2' ));
-                
-                myEditor.menu.disableSubItem('menuRepertorio', 'LOADLOC' );
-                
-//                window.setTimeout( function() { 
-//                }, 1000 );
-                
-            }
+            myEditor.menu.disableSubItem('menuRepertorio', 'LOADLOC');
 
-            function doTranspose(value) {
-                var doc = document.documentElement;
-                window.lastYpos = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);                
-                myEditor.fireChanged( value, {force: true} );
-            };
+            //                window.setTimeout( function() { 
+            //                }, 1000 );
 
-            function doForceRefresh() {
-                var doc = document.documentElement;
-                window.lastYpos = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);                
-                myEditor.fireChanged( 0, {force: true, showProgress:true} );
-            };
+        }
 
-            function doCheckDebug() {
-                debug = document.getElementById("chkDebug").checked;
-                myEditor.accordion.loadedKeyboard.showImagem(debug);
-                myEditor.accordion.loadedKeyboard.showExtras(debug);
-                myEditor.accordion.loadedKeyboard.showExtrasOpen(debug);
-                var doc = document.documentElement;
-                window.lastYpos = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);                
-                myEditor.fireChanged( 0, {force: true} );
-            };
+        function doTranspose(value) {
+            var doc = document.documentElement;
+            window.lastYpos = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+            myEditor.fireChanged(value, { force: true });
+        };
 
-        </script>        
-    </body>
-    
+        function doForceRefresh() {
+            var doc = document.documentElement;
+            window.lastYpos = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+            myEditor.fireChanged(0, { force: true, showProgress: true });
+        };
+
+        function doCheckDebug() {
+            debug = document.getElementById("chkDebug").checked;
+            myEditor.accordion.loadedKeyboard.showImagem(debug);
+            myEditor.accordion.loadedKeyboard.showExtras(debug);
+            myEditor.accordion.loadedKeyboard.showExtrasOpen(debug);
+            var doc = document.documentElement;
+            window.lastYpos = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+            myEditor.fireChanged(0, { force: true });
+        };
+
+    </script>
+</body>
+
 </html>
