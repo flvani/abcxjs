@@ -55,7 +55,36 @@ window.ABCXJS.parse.rebalance = function ( text ) {
     var lfTreble = -1;
     var liBass = -1;
     var lfBass = -1;
-    var regex = /[:\]\|[\[]+(?![\]:\[\|])/;
+
+    var split = function( text, maxbars ) {
+        var x0 = 0;
+        var x1 = 0;
+        var xi = 0;
+        var cnt = 0;
+        var newLines = [];
+        var regex = /(?:[\:\|]|\[\|)+[\:\|\]]{0,}/; // identifica as barras de compasso
+
+        var bar = text.substring(xi).match(regex);
+
+        while (bar) {
+            bar = text.substring(xi).match(regex);
+            if(bar) {
+               xi += (bar.index+bar[0].length);
+               cnt += 1;
+            } else {
+                // força a saida
+                xi = text.length;
+                cnt = maxbars;
+            }
+            if ( cnt === maxbars ) {
+                cnt = 0;
+                x1 = xi;
+                newLines.push( text.substring(x0, x1) )
+                x0=x1;
+            }
+        }
+        return newLines;
+    }
 
     for (let index = 0; index < lines.length; index++){
         const element = lines[index];
@@ -73,7 +102,7 @@ window.ABCXJS.parse.rebalance = function ( text ) {
         if (element.includes('linebreak')){
             linebreak = element.substring(element.indexOf(' ')+1);
         }
-        if (element.includes('barsperstaff')){
+        if (element.includes('%%barsperstaff')){
             barsperstaff = parseInt( element.substring(element.indexOf(' ')+1));
         }
         if(regularLine && (inBass || inTreble)){
@@ -94,47 +123,18 @@ window.ABCXJS.parse.rebalance = function ( text ) {
         }
     }
 
-    var split = function( text, regex, maxbars ) {
-        var xi = 0;
-        var x0 = 0;
-        var x1 = 0;
-        var cnt = 0;
-        var newLines = [];
-        var bar = text.substring(xi).match(regex);
-        while (bar) {
-            bar = text.substring(xi).match(regex);
-            if(bar) {
-               xi += (bar.index+bar[0].length);
-               if( bar[0] !== '[' && bar[0] !== ']' && bar[0] !== ']['){
-                    //somente conta se for uma barra válida - melhorar a expresão de procura
-                    cnt += 1;
-               }
-            } else {
-                // força a saida
-                xi = text.length;
-                cnt = maxbars;
-            }
-            if ( cnt === maxbars ) {
-                cnt = 0;
-                x1 = xi;
-                newLines.push( text.substring(x0, x1) )
-                x0=x1;
-            }
-        }
-        return newLines;
-    }
 
-    var newTrebleLines = split( trebleText, regex, barsperstaff );
-    var newBassLines = split( bassText, regex, barsperstaff );
+    var newTrebleLines = split( trebleText, barsperstaff );
+    var newBassLines = split( bassText, barsperstaff );
 
-    var nl = lines.splice(0,liBass)
-                .concat(newBassLines)
-                .concat(lines.splice(lfBass-liBass+1));
+    let nl = [
+        ...lines.slice(0, liTreble),
+        ...newTrebleLines,
+        ...lines.slice(lfTreble + 1, liBass),
+        ...newBassLines,
+        ...lines.slice(lfBass + 1)
+    ];
 
-    nl = nl.splice(0,liTreble)
-           .concat(newTrebleLines)
-           .concat(nl.splice(lfTreble-liTreble+1));
-    
     return nl.join('\n')
     
 };
