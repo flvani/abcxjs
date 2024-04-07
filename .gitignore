@@ -3,3 +3,4 @@ nbproject/*
 bin/*
 .vscode/settings.json
 .vscode/extensions.json
+node_modules
