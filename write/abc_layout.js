@@ -449,10 +449,10 @@ ABCXJS.write.Layout.prototype.printNote = function(elem, nostem, dontDraw) { //s
 
             //tentativa de garantir que as notas da ligadura usem hastes na mesma direcao
             if(elem.pitches[p].startTie && !dontDraw) {
-                var startsTie=true;
+                startsTie=true;
             }
             if(elem.pitches[p].endTie && !dontDraw) {
-                var endsTie=true;
+                endsTie=true;
             }
 
         }
@@ -818,7 +818,7 @@ ABCXJS.write.Layout.prototype.printNoteHead = function (abselem, c, pitchelem, d
         abselem.addExtra(new ABCXJS.write.RelativeElement(symb, accPlace, this.glyphs.getSymbolWidth(symb), pitch));
     }
 
-    if (pitchelem.endTie) {
+    if (pitchelem.endTie ) {
         if (this.ties[0]) {
             this.ties[0].anchor2 = notehead;
             this.ties = this.ties.slice(1, this.ties.length);
@@ -829,7 +829,9 @@ ABCXJS.write.Layout.prototype.printNoteHead = function (abselem, c, pitchelem, d
         //PER: bug fix: var tie = new ABCXJS.write.TieElem(notehead, null, (this.stemdir=="up" || dir=="down") && this.stemdir!="down",(this.stemdir=="down" || this.stemdir=="up"));
         var tie = new ABCXJS.write.TieElem(notehead, null, (this.stemdir === "down" || dir === "down") && this.stemdir !== "up", (this.stemdir === "down" || this.stemdir === "up"));
         this.ties[this.ties.length] = tie;
+
         this.voice.addOther(tie);
+
     }
 
     if (pitchelem.endSlur) {
