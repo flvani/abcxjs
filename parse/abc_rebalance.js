@@ -64,10 +64,15 @@ window.ABCXJS.parse.rebalance = function ( text ) {
         var newLines = [];
         var regex = /(?:[\:\|]|\[\|)+[\:\|\]]{0,}/; // identifica as barras de compasso
 
-        // Criando uma expressão regular usando a variável
+        // Criando uma expressão regular usando a variável para remover linebreaks
         var replaceLineBreakRegEx = new RegExp('(\\'+linebreak+')', 'gi');
-
         var text = texto.replace( replaceLineBreakRegEx, '');
+        
+        var text = text.replace( /\:\:/g, ':|:'); // substitui a :: por :|:
+
+        // esta variável não interfere na primeira linha retornada, mas a partir do final da primeira linha, 
+        // observamos a barra de compasso e projetamos a barra inicial da linha seguinte
+        var nextLineBar = '';
 
         var bar = text.substring(xi).match(regex);
 
@@ -81,11 +86,30 @@ window.ABCXJS.parse.rebalance = function ( text ) {
                 xi = text.length;
                 cnt = maxbars;
             }
+
+            // hora de fazer o split
             if ( cnt === maxbars ) {
+                var bi ='|'; // será a barra inicial da proxima linha
+                var bf = ''; // barra final da linha corrente
+                var bfl = 0; // comprimento da barra final (antes de qualquer modificação)
+                
+                // verifica se precisa fazer o split da barra final também.
+                if (bar){
+                    bf = bar[0];
+                    bfl = bar[0].length;
+                    if( bf[bfl-1] === ':' ) { // caso em que faz o split da barra final
+                       bi = '|:'
+                       bf = bar[0].substring(0,bfl-1);
+                    } else {
+                       bi = '|'
+                    }
+                }
+
                 cnt = 0;
                 x1 = xi;
-                newLines.push( text.substring(x0, x1) )
+                newLines.push( nextLineBar + text.substring(x0, x1-bfl ) + bf  )
                 x0=x1;
+                nextLineBar = bi;
             }
         }
         return newLines;
