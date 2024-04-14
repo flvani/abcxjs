@@ -1,20 +1,13 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 "use strict"
 
 /*global window */
-
 if (!window.ABCXJS)
 	window.ABCXJS = {};
 
 if (!window.ABCXJS.parse)
 	window.ABCXJS.parse = {};
     
-window.ABCXJS.parse.rebalance = function ( text ) {
+window.ABCXJS.parse.rebalance = function ( strTune ) {
 
     alert( 'A função rebalance é experimental!\n' +
             'O objetivo é alinhar a quantidade de compassos de\n' +
@@ -24,25 +17,6 @@ window.ABCXJS.parse.rebalance = function ( text ) {
             'Linebreaks são removidos.\n' + 
             'Espera-se que as vozes V:1 e V:2 bass sejam bem definidas.'
         );
-
-    var strTune = text;
-
-    // Take care of whatever line endings come our way
-    strTune = window.ABCXJS.parse.gsub(strTune, '\r\n', '\n');
-    strTune = window.ABCXJS.parse.gsub(strTune, '\r', '\n');
-    strTune += strTune.charAt(strTune.length-1) === '\n' ? '' : '\n';
-    strTune = strTune.replace(/\n\\.*\n/g, "\n");	// get rid of latex commands.
-    
-    var continuationReplacement = function(all, backslash, comment) {
-        var spaces = "                                                                                                                                                                                                     ";
-        var padding = comment ? spaces.substring(0, comment.length) : "";
-        return backslash + " \x12" + padding;
-    };
-    
-    // take care of line continuations right away, but keep the same number of characters
-    strTune = strTune.replace(/\\([ \t]*)(%.*)*\n/g, continuationReplacement);	
-    
-    var lines = strTune.split('\n');
 
     var barsperstaff = 6;
     var linebreak ='$'
@@ -55,29 +29,37 @@ window.ABCXJS.parse.rebalance = function ( text ) {
     var lfTreble = -1;
     var liBass = -1;
     var lfBass = -1;
+    var lines = [];
 
-    var split = function( texto, maxbars, linebreak ) {
+    var continuationReplacement = function(all, backslash, comment) {
+        var spaces = "                                                                                                                                                                                                     ";
+        var padding = comment ? spaces.substring(0, comment.length) : "";
+        return backslash + " \x12" + padding;
+    };
+
+    var split = function( text, maxbars, lineBreak ) {
+
         var x0 = 0;
-        var x1 = 0;
         var xi = 0;
         var cnt = 0;
+        var bar = true;
         var newLines = [];
-        var regex = /(?:[\:\|]|\[\|)+[\:\|\]]{0,}/; // identifica as barras de compasso
 
-        // Criando uma expressão regular usando a variável para remover linebreaks
-        var replaceLineBreakRegEx = new RegExp('(\\'+linebreak+')', 'gi');
-        var text = texto.replace( replaceLineBreakRegEx, '');
-        
-        var text = text.replace( /\:\:/g, ':|:'); // substitui a :: por :|:
+        // identifica as barras de compasso
+        var barRegex = /(?:[\:\|]|\[\|)+[\:\|\]]{0,}/; 
 
         // esta variável não interfere na primeira linha retornada, mas a partir do final da primeira linha, 
         // observamos a barra de compasso e projetamos a barra inicial da linha seguinte
         var nextLineBar = '';
 
-        var bar = text.substring(xi).match(regex);
+        text = text
+            // remover lineBreaks do texto
+            .replace(new RegExp('(\\'+lineBreak+')', 'gi'), '')
+            // substituir '::' por ':|:'
+            .replace( /::/g, ':|:'); 
 
         while (bar) {
-            bar = text.substring(xi).match(regex);
+            bar = text.substring(xi).match(barRegex);
             if(bar) {
                xi += (bar.index+bar[0].length);
                cnt += 1;
@@ -87,33 +69,46 @@ window.ABCXJS.parse.rebalance = function ( text ) {
                 cnt = maxbars;
             }
 
-            // hora de fazer o split
+            // hora de fazer o split?
             if ( cnt === maxbars ) {
-                var bi ='|'; // será a barra inicial da proxima linha
+                var bi = '|'; // será a barra inicial da proxima linha
                 var bf = ''; // barra final da linha corrente
                 var bfl = 0; // comprimento da barra final (antes de qualquer modificação)
-                
+
+                cnt = 0; // reseta a contagem
+
                 // verifica se precisa fazer o split da barra final também.
                 if (bar){
                     bf = bar[0];
-                    bfl = bar[0].length;
+                    bfl = bf.length;
                     if( bf[bfl-1] === ':' ) { // caso em que faz o split da barra final
                        bi = '|:'
                        bf = bar[0].substring(0,bfl-1);
-                    } else {
-                       bi = '|'
                     }
                 }
 
-                cnt = 0;
-                x1 = xi;
-                newLines.push( nextLineBar + text.substring(x0, x1-bfl ) + bf  )
-                x0=x1;
+                newLines.push( nextLineBar + text.substring(x0, xi-bfl ) + bf );
+
+                x0 = xi;
                 nextLineBar = bi;
             }
         }
         return newLines;
     }
+
+    strTune = strTune
+        // Take care of whatever line endings come our way
+        .replace( /\r\n/g, '\n' )	
+        .replace( /\r/g, '\n' )
+        // get rid of latex commands.
+        .replace(/\n\\.*\n/g, "\n")	
+        // take care of line continuations right away, but keep the same number of characters
+        .replace(/\\([ \t]*)(%.*)*\n/g, continuationReplacement);	
+    
+    // garante uma linha em branco no final
+    strTune += strTune.charAt(strTune.length-1) === '\n' ? '' : '\n';
+
+    lines = strTune.split('\n');
 
     for (let index = 0; index < lines.length; index++){
         const element = lines[index];
@@ -144,7 +139,7 @@ window.ABCXJS.parse.rebalance = function ( text ) {
                lfBass = index;
                bassText += element.substring(0,commentX);
             } 
-            if( inTreble) {
+            if(inTreble) {
                liTreble = liTreble === -1? index : liTreble;
                lfTreble = index;
                trebleText += element.substring(0,commentX);
@@ -152,11 +147,10 @@ window.ABCXJS.parse.rebalance = function ( text ) {
         }
     }
 
-
     var newTrebleLines = split( trebleText, barsperstaff, linebreak );
     var newBassLines = split( bassText, barsperstaff, linebreak );
 
-    let nl = [
+    let newText = [
         ...lines.slice(0, liTreble),
         ...newTrebleLines,
         ...lines.slice(lfTreble + 1, liBass),
@@ -164,6 +158,6 @@ window.ABCXJS.parse.rebalance = function ( text ) {
         ...lines.slice(lfBass + 1)
     ];
 
-    return nl.join('\n')
+    return newText.join('\n')
     
 };

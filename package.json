@@ -1,6 +1,6 @@
 {
   "name": "abcxjs.js",
-  "version": "6.43",
+  "version": "6.44",
   "devDependencies": {
     "grunt": "^1.6.1",
     "grunt-contrib-clean": "^1.0.0",
