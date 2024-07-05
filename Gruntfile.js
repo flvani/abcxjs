@@ -151,7 +151,7 @@ module.exports = function(grunt) {
                     {expand: true, cwd: 'bin/', src: 'ace4abcx_<%= pkg.version %>-min.js', dest: '../diatonic-map/ace4abcx/' },
                     {expand: true, cwd: 'bin/', src: 'diatonic_<%= pkg.version %>-min.js', dest: '../diatonic-map/diatonic/' },
                     {expand: true, cwd: 'bin/', src: 'filemanager_<%= pkg.version %>-min.js', dest: '../diatonic-map/file/' },
-                    {expand: true, cwd: 'bin/', src: 'styles4abcx<%= pkg.version %>-min.css', dest: '../diatonic-map/css/' },
+                    {expand: true, cwd: 'bin/', src: 'styles4abcx_<%= pkg.version %>-min.css', dest: '../diatonic-map/css/' },
                     {expand: true, cwd: 'bin/', src: 'styles4help.min.css', dest: '../diatonic-map/css/' },
                     {expand: true, cwd: 'bin/', src: 'abcx-help.min.js', dest: 'jslib/' },
                 ]
