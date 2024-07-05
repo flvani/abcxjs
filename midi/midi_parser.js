@@ -849,7 +849,7 @@ ABCXJS.midi.Parse.prototype.getBassButton = function( bellows, b, variant ) {
     var nota = kb.parseNote(b.replace( "m", ":m" ), true );
     nota.variant = variant;
     
-    for( var j = kb.keyMap.length; j > kb.keyMap.length - 2; j-- ) {
+    for( var j = kb.keyMap.length; j > kb.basses.close.length; j-- ) {
       for( var i = 0; i < kb.keyMap[j-1].length; i++ ) {
           var tecla = kb.keyMap[j-1][i];
           if(bellows === '+') {

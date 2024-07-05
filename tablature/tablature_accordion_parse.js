@@ -322,7 +322,7 @@ ABCXJS.tablature.Parse.prototype.checkBassButton = function (bellows, b) {
     // no mapeamento da gaita, escrevemos a1:m, por exemplo.
     // então trocar "m" por ":m"
     var nota = kb.parseNote(b.replace("m", ":m"), true);
-    for (var j = kb.keyMap.length; j > kb.keyMap.length - 2; j--) {
+    for (var j = kb.keyMap.length; j > kb.basses.close.length; j--) {
         for (var i = 0; i < kb.keyMap[j - 1].length; i++) {
             var tecla = kb.keyMap[j - 1][i];
             if (bellows === '+') {

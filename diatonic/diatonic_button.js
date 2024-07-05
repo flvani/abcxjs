@@ -158,6 +158,9 @@ DIATONIC.map.Button.prototype.getLabel = function(nota, showLabel) {
     if( nota.isMinor ) {
         l+='-';
     }
+    if( nota.isSetima ) {
+        l+='7';
+    }
     return l;
 };
 
