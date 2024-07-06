@@ -192,7 +192,7 @@ ABCXJS.tablature.Accordion.prototype.getNoteName = function( item, keyAcc, barAc
     
     if (item.chord) key = key.toLowerCase();    
     
-    return { key: key, octave:oitava, isBass:bass, isChord: item.chord, isMinor: item.minor, value:value };
+    return { key: key, octave:oitava, isBass:bass, isChord: item.chord, isMinor: item.minor, isSetima: item.setima, value:value };
 };
 
 ABCXJS.tablature.Accordion.prototype.inferTablature = function(tune, vars, addWarning ) {

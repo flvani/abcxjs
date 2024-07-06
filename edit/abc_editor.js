@@ -191,21 +191,20 @@ ABCXJS.Editor = function (params) {
     
     this.resize();
 
-    if ( SITE.properties.options.tabFormat === undefined ) SITE.properties.options.tabFormat = 0;
-
 /*
     this.globalPautaNumerica     = 0    
     this.globalPautaNumericaMini = false;
     this.globalIlheirasNumeradas = false;
     //SITE.properties.options.rowsNumbered  = this.globalIlheirasNumeradas ;
 */
-
+    
     this.globalHideLyrics        = false;
     this.globalHideFingering     = false;
 
     this.parserparams.hideLyrics = this.globalhideLyrics ;
     this.parserparams.hideFingering = this.globalHideFingering ;
 
+    if ( SITE.properties.options.tabFormat === undefined ) SITE.properties.options.tabFormat = 0;
 
     if (params.refreshController_id)
         this.refreshController = document.getElementById(params.refreshController_id );
@@ -235,7 +234,7 @@ ABCXJS.Editor = function (params) {
             }
 
             //this.accordion.printKeyboard(this.keyboardWindow.dataDiv , {fillColor:'yellow', openColor:'navy', closeColor:'purple', backgroundColor:'red' } );
-            this.accordion.printKeyboard(this.keyboardWindow.dataDiv );
+            //this.accordion.printKeyboard(this.keyboardWindow.dataDiv );
             this.switchMap();
 
 
@@ -397,6 +396,19 @@ ABCXJS.Editor = function (params) {
     });
     
 };
+/*
+SITE.Estudio.prototype.highlight = function(abcelem) {
+    if( !this.midiPlayer.playing) {
+        if(SITE.properties.studio.keyboard.visible ) {
+            this.accordion.clearKeyboard(true);
+            this.midiParser.setSelection(abcelem);
+        }
+        if(SITE.properties.studio.editor.visible) {
+            this.editorWindow.setSelection(abcelem);
+        }    
+    }    
+};
+*/
 
 ABCXJS.Editor.prototype.resize = function( ) {
     
@@ -439,18 +451,21 @@ ABCXJS.Editor.prototype.setString = function( text ) {
     this.editarea.setString( text );
 };
 
+/*
 ABCXJS.Editor.prototype.renderTune = function (abc, params, div) {
 
     var tunebook = new ABCXJS.TuneBook(abc);
     var abcParser = new ABCXJS.parse.Parse(this.transposer, this.accordion);
     abcParser.parse(tunebook.tunes[0].abc, params); //TODO handle multiple tunes
     var tune = abcParser.getTune();
-    var paper = Raphael(div, 800, 400);
+    //var paper = Raphael(div, 800, 400);
+    var paper = new SVG.Printer( div );
     var printer = new ABCXJS.write.Printer(paper, {}, this.accordion.loadedKeyboard);// TODO: handle printer params
     //printer.printABC(tune, {color:'green'} );
     printer.printABC(tune);
 
 };
+*/
 
 ABCXJS.Editor.prototype.printWarnings = function()  {
     this.endTime = new Date();
@@ -596,9 +611,11 @@ ABCXJS.Editor.prototype.unhighlight = function(abcelem) {
 // call when abc text is changed and needs re-parsing
 ABCXJS.Editor.prototype.fireChanged = function (transpose, _opts) {
     
-// flavio debug    if( this.changing ) return;
-this.parserparams.hideFingering = !this.parserparams.hideFingering;
-this.parserparams.hideLyrics = !this.parserparams.hideLyrics;
+    if( this.changing ) return;
+
+// flavio debug    
+//this.parserparams.hideFingering = !this.parserparams.hideFingering;
+//this.parserparams.hideLyrics = !this.parserparams.hideLyrics;
     
     this.changing = true;
     var opts = _opts || {};

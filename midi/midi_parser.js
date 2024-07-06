@@ -843,19 +843,16 @@ ABCXJS.midi.Parse.prototype.getBassButton = function( bellows, b, variant ) {
     if( b === 'x' ||  !this.midiTune.keyboard ) return null;
     var kb = this.midiTune.keyboard;
     
-    // há uma pequena conversão: na tablatura registramos os acordes menores com "m"
-    // no mapeamento da gaita, escrevemos a1:m, por exemplo.
-    // então trocar "m" por ":m"
-    var nota = kb.parseNote(b.replace( "m", ":m" ), true );
+    var nota = kb.parseNote(b, true );
     nota.variant = variant;
     
     for( var j = kb.keyMap.length; j > kb.basses.close.length; j-- ) {
       for( var i = 0; i < kb.keyMap[j-1].length; i++ ) {
           var tecla = kb.keyMap[j-1][i];
           if(bellows === '+') {
-            if(tecla.closeNote.key === nota.key  && nota.isMinor === tecla.closeNote.isMinor && nota.variant === tecla.closeNote.variant ) return tecla;
+            if(tecla.closeNote.key === nota.key  && nota.isMinor === tecla.closeNote.isMinor && nota.isSetima === tecla.closeNote.isSetima && nota.variant === tecla.closeNote.variant ) return tecla;
           } else {  
-            if(tecla.openNote.key === nota.key && nota.isMinor === tecla.openNote.isMinor && nota.variant === tecla.openNote.variant ) return tecla;
+            if(tecla.openNote.key === nota.key && nota.isMinor === tecla.openNote.isMinor && nota.isSetima === tecla.openNote.isSetima && nota.variant === tecla.openNote.variant ) return tecla;
           }
       }   
     }

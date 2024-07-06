@@ -318,10 +318,7 @@ ABCXJS.tablature.Parse.prototype.checkBassButton = function (bellows, b) {
 
     if (!kb || b === undefined || ('.>.x.z.').indexOf(b) > 0) return true;
 
-    // há uma pequena conversão: na tablatura registramos os acordes menores com "m"
-    // no mapeamento da gaita, escrevemos a1:m, por exemplo.
-    // então trocar "m" por ":m"
-    var nota = kb.parseNote(b.replace("m", ":m"), true);
+    var nota = kb.parseNote(b, true);
     for (var j = kb.keyMap.length; j > kb.basses.close.length; j--) {
         for (var i = 0; i < kb.keyMap[j - 1].length; i++) {
             var tecla = kb.keyMap[j - 1][i];

@@ -268,6 +268,7 @@ ABCXJS.tablature.Infer.prototype.extraiIntervalo = function(voices) {
                     elem.pitches[0].verticalPos =  elem.pitches[b.inversion].verticalPos;
                     elem.pitches[0].chord = b.isChord;
                     elem.pitches[0].minor = b.isMinor;
+                    elem.pitches[0].setima = b.isSetima;
                     elem.pitches.splice(1, elem.pitches.length - 1);
                 }
                 wf.bassNote[wf.bassNote.length] = ABCXJS.parse.clone(elem.pitches[0]);
@@ -312,19 +313,24 @@ ABCXJS.tablature.Infer.prototype.extraiIntervalo = function(voices) {
 };
 
 ABCXJS.tablature.Infer.prototype.determineBassChord = function(deltas) {
-  var ret = {isChord:false, isMinor:false, inversion:0};
+  var ret = {isChord:false, isMinor:false, isSetima:false, inversion:0};
   
   //Considerando a formação de acordes, com relação ao intervalo de semitons, podemos dizer que:
   // Um acorde maior é formado por sua tonica (0) + a terça maior (+4 semitons) + a quinta justa (+3 semitons),
-  // assim o acorde Dó maior, C-E-G é 043. Dó menor, C-Eb-G será 034
-  // as inversões (1) G-c-e e (2) E-G-c e também podem ser representadas por estes mnemonicos
+  // Um acorde menor é formado por sua tonica (0) + a terça menor (+3 semitons) + a quinta justa (+4 semitons),
+  // Um acorde maior com sétima é formado por sua tonica (0) + a terça maior (+4 semitons) + a quinta justa (+3 semitons) + a sétima bemol (+3 semitons),
+  // assim o acorde Dó maior, C-E-G é 043. Dó menor, C-Eb-G será 034 e Dó maior com sétima será 0433.
+  // as inversões (1) G-c-e e (2) E-G-c e também podem ser representadas por estes mnemonicos, n
+  // inversões para acordes com sétima não implementadas
   var aDeltas = {
-     '043': { isMinor: false, inversion:0 } 
-    ,'034': { isMinor: true,  inversion:0 } 
-    ,'035': { isMinor: false, inversion:2 } 
-    ,'045': { isMinor: true,  inversion:2 } 
-    ,'054': { isMinor: false, inversion:1 } 
-    ,'053': { isMinor: true,  inversion:1 } 
+      '043': { isMinor: false, isSetima:false, inversion:0 } 
+    , '034': { isMinor: true,  isSetima:false, inversion:0 } 
+    , '035': { isMinor: false, isSetima:false, inversion:2 } 
+    , '045': { isMinor: true,  isSetima:false, inversion:2 } 
+    , '054': { isMinor: false, isSetima:false, inversion:1 } 
+    , '053': { isMinor: true,  isSetima:false, inversion:1 } 
+    ,'0433': { isMinor: false, isSetima:true,  inversion:0 } 
+    ,'0343': { isMinor: true,  isSetima:true,  inversion:0 } 
   };
   
   switch(deltas.length) {
@@ -336,13 +342,21 @@ ABCXJS.tablature.Infer.prototype.determineBassChord = function(deltas) {
       case 3:
           var map = '0' + (deltas[1]-deltas[0]) + (deltas[2]-deltas[1]);
           try{
-              ret = {isChord:true, isMinor:aDeltas[map].isMinor, inversion:aDeltas[map].inversion};
+              ret = {isChord:true, isMinor:aDeltas[map].isMinor, isSetima:false, inversion:aDeltas[map].inversion};
+          } catch(e) {
+            this.addWarning('Acorde não reconhecido: ' + map + '.');
+          }
+          break;
+      case 4:
+          var map = '0' + (deltas[1]-deltas[0]) + (deltas[2]-deltas[1]) + (deltas[3]-deltas[2]);
+          try{
+              ret = {isChord:true, isMinor:aDeltas[map].isMinor, isSetima:aDeltas[map].isSetima, inversion:aDeltas[map].inversion};
           } catch(e) {
             this.addWarning('Acorde não reconhecido: ' + map + '.');
           }
           break;
       default:
-          this.addWarning('Acorde com mais de 3 notas não é suportado.');
+          this.addWarning('Acorde com mais de 4 notas não é suportado.');
           break;
   }
   
@@ -459,7 +473,7 @@ ABCXJS.tablature.Infer.prototype.addTABChild = function(token, line ) {
                 item.buttons = this.accordion.loadedKeyboard.getButtons(note);
                 baixoOpen  = baixoOpen  ? typeof (item.buttons.open) !== "undefined" : false;
                 baixoClose = baixoClose ? typeof (item.buttons.close) !== "undefined" : false;
-                item.note = note.key + (note.isMinor?"m":"");
+                item.note = note.key + (note.isMinor?"m":"")+ (note.isSetima?"7":"");
                 item.c =  (item.buttons.close || item.buttons.open) ? ( item.inTie ?  'scripts.rarrow': item.note ) :  'x';
                 child.pitches[b] = item;
                 this.registerLine(child.pitches[b].c === 'scripts.rarrow' ? '>' : child.pitches[b].c);

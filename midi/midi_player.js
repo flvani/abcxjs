@@ -322,7 +322,7 @@ ABCXJS.midi.Player.prototype.executa = function(pl) {
                     }
                 }
                 
-                if( !debug && elem.button && elem.button.button && elem.button.button.SVG && elem.button.button.SVG.button !==null) {
+                if( /*!debug &&*/ elem.button && elem.button.button && elem.button.button.SVG && elem.button.button.SVG.button !==null) {
                     aqui=1;
 
                     if(elem.button.closing) {

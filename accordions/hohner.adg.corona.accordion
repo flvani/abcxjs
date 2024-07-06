@@ -1,14 +1,18 @@
 {
    "id":"GAITA_HOHNER_CORONA_ADG"
-  ,"menuOrder" : 4
+  ,"menuOrder" : 5
   ,"model":"Hohner Corona Series"
   ,"tuning":["A","D","G"]
   ,"buttons":["31","12"]
   ,"pedal":[]
-  ,"image":"images/Hohner.Corona III.b.png"
+  ,"image":"images/accordions/Hohner.Corona III.png"
   ,"keyboard": 
     {
        "layout": [0.5, 0, 0.5]
+      ,"numerica": [ 
+           {"modo": "1", "nome":"Numérica ciclíca", "rule": [0,10,20], "overrides": { "11'":"21A" } }
+          ,{"modo": "2", "nome":"Numérica contínua", "rule": [0,10,21], "overrides": {} } 
+      ]
       ,"keys":
       {
         "close": [["E♭4", "A3", "C♯4", "E4", "A4", "C♯5", "E5", "A5", "C♯6", "E6"], ["G♯4", "A3", "D4", "F♯4", "A4", "D5", "F♯5", "A5", "D6", "F♯6", "A6"], ["F5", "D4", "G4", "B4", "D5", "G5", "B5", "D6", "G6", "B6"]]
@@ -20,20 +24,7 @@
        , "open": [["b2:m", "B2", "e2:m", "E¹2", "c2", "C2"], ["e2", "E2", "a2", "A2", "d2", "D2"]]
       }
     }
-  ,"songPathList":
-    [
-       "songs/corona-adg/asa.branca.corona.abcx"
-      ,"songs/corona-adg/chorando.se.foi.corona.abcx"
-      ,"songs/corona-adg/despacito.corona.abcx"
-      ,"songs/corona-adg/jai.du.bon.tabac.corona.abcx"
-      ,"songs/corona-adg/jingle.bells.corona.abcx"
-      ,"songs/corona-adg/maitia.nun.zira.corona.abcx"
-      ,"songs/corona-adg/merceditas.corona.abcx"
-      ,"songs/corona-adg/pezinho.corona.abcx"
-      ,"songs/corona-adg/xote.laranjeira.corona.abcx"
-    ]
+  ,"songPathList":["songs/corona-adg.repertorio.abcx"]
   ,"practicePathList":[]
-  ,"chordPathList":[
-       "chords/acordes.corona.abcx"
-  ]
+  ,"chordPathList":["chords/acordes.corona.abcx"]
 }

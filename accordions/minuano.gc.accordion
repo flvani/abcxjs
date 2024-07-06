@@ -1,11 +1,11 @@
 {
-   "id":"GAITA_HOHNER_GC"
-  ,"menuOrder" : 10
-  ,"model":"Hohner/Hëring"
+   "id":"GAITA_MINUANO_GC"
+  ,"menuOrder" : 1
+  ,"model":"Minuano"
   ,"tuning":["G","C"]
   ,"buttons":["21","8"]
   ,"pedal":[2,5]
-  ,"image":"img/accordions/Hohner Beija-Flor.gif"
+  ,"image":"images/accordions/Minuano.GC.png"
   ,"keyboard": 
     {
        "layout":[0,0.5]
@@ -26,26 +26,14 @@
     }
 ,"songPathList":
     [
-       "songs/asa.branca.abcx"
-      ,"songs/canto.alegretense.abcx"
-      ,"songs/hino.do.gremio.abcx"
-      ,"songs/maitia.nun.zira.abcx"
-      ,"songs/mercedita.abcx"
-      ,"songs/parabens.crioulo.abcx"
-      ,"songs/prenda.minha.abcx"
-      ,"songs/primeira.valsinha.abcx"
-      ,"songs/rincao.dos.maciel.abcx"
-      ,"songs/tristeza.do.jeca.abcx"
-      ,"songs/valsa.sertaneja.abcx"
-      ,"songs/vanera.grossa.abcx"
-      ,"songs/xote.laranjeira.abcx"
+       "songs/minuano.repertorio.abcx"
     ]
 ,"practicePathList":
     [
-       "practices/exercicio4.abcx"
+       "practices/exercicio1.abcx"
       ,"practices/exercicio2.abcx"
       ,"practices/exercicio3.abcx"
-      ,"practices/exercicio1.abcx"
+      ,"practices/exercicio4.abcx"
     ]
 ,"chordPathList":
     [
