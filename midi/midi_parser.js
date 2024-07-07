@@ -843,14 +843,19 @@ ABCXJS.midi.Parse.prototype.getBassButton = function( bellows, b, variant ) {
     if( b === 'x' ||  !this.midiTune.keyboard ) return null;
     var kb = this.midiTune.keyboard;
     
-    var nota = kb.parseNote(b, true );
-    nota.variant = variant;
+    var nota = kb.parseNote(b, true ); 
+
+    // flavio melhorar
+    // quando se faz busca os botoes de baixo, após inferir a tablatura, o campo variant vem undefined.
+    // corrigi aqui, tratando o tipo, mas o ideal era garantir que já viesse com este campo preenchido
+    //a exemplo do que acontece quando a tablatura já existe e se faz apenas o parse
+    nota.variant = variant === undefined? 0 : variant;  
     
     for( var j = kb.keyMap.length; j > kb.basses.close.length; j-- ) {
       for( var i = 0; i < kb.keyMap[j-1].length; i++ ) {
           var tecla = kb.keyMap[j-1][i];
           if(bellows === '+') {
-            if(tecla.closeNote.key === nota.key  && nota.isMinor === tecla.closeNote.isMinor && nota.isSetima === tecla.closeNote.isSetima && nota.variant === tecla.closeNote.variant ) return tecla;
+            if(tecla.closeNote.key === nota.key && nota.isMinor === tecla.closeNote.isMinor && nota.isSetima === tecla.closeNote.isSetima && nota.variant === tecla.closeNote.variant ) return tecla;
           } else {  
             if(tecla.openNote.key === nota.key && nota.isMinor === tecla.openNote.isMinor && nota.isSetima === tecla.openNote.isSetima && nota.variant === tecla.openNote.variant ) return tecla;
           }

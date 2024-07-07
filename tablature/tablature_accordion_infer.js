@@ -512,7 +512,6 @@ ABCXJS.tablature.Infer.prototype.addTABChild = function(token, line ) {
                 allOpen = allOpen ? typeof (item.buttons.open) !== "undefined" : false;
                 allClose = allClose ? typeof (item.buttons.close) !== "undefined" : false;
         }
-        
         child.pitches[child.pitches.length] = item;
     }
     
